@@ -1,0 +1,9 @@
+[user]
+	name = Ben Cutrell
+	email = bcutrell13@gmail.com
+
+[core]
+	excludesfile = /Users/bcutrell/.gitignore_global
+
+[credential]
+	helper = osxkeychain
