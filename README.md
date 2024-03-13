@@ -21,6 +21,9 @@ stow -D <packagename> # delete stowed package
 stow -R <packagename> # restows package
 stow bash git nvim # install packages
 ```
+## Vim
+
+https://github.com/amix/vimrc
 
 ## Neovim
 
@@ -69,3 +72,15 @@ $ sudo apt-get install ripgrep
 ## Fonts
 
 - A [Nerd Font](https://www.nerdfonts.com/): optional, provides various icons
+
+## Poetry
+
+- tab completion
+```
+mkdir $ZSH_CUSTOM/plugins/poetry
+poetry completions zsh > $ZSH_CUSTOM/plugins/poetry/_poetry
+```
+
+## oh my zsh
+
+https://ohmyz.sh/#install
