@@ -6,19 +6,16 @@ export ZSH=$HOME/.oh-my-zsh # Path to  oh-my-zsh installation
 # https://github.com/robbyrussell/oh-my-zsh/wiki/themes
 ZSH_THEME="robbyrussell"
 
-# plugins
 plugins=(
     git
     gitfast
     last-working-dir
     common-aliases
-    zsh-syntax-highlighting
     history-substring-search
     poetry
 )
 
-# Load oh-my-zsh
-source $ZSH/oh-my-zsh.sh
+source $ZSH/oh-my-zsh.sh # Load oh-my-zsh
 unalias rm # No interactive rm by default (brought by plugins/common-aliases)
 unalias lt # we need `lt` for https://github.com/localtunnel/localtunnel
 
