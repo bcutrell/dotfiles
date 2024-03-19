@@ -81,6 +81,30 @@ mkdir $ZSH_CUSTOM/plugins/poetry
 poetry completions zsh > $ZSH_CUSTOM/plugins/poetry/_poetry
 ```
 
-## oh my zsh
+## Shells
 
-https://ohmyz.sh/#install
+In order of preference
+
+1) https://ohmyz.sh/#install
+2) bash-it
+    git clone --depth=1 https://github.com/Bash-it/bash-it.git ~/.bash_it
+    Run ~/.bash_it/install.sh
+3) fish
+    brew install fish
+
+## Snippters
+```
+#
+# Change shell
+#
+# per session
+$ exec zsh -l  # switch to zsh
+$ exec bash -l # switch to bash
+
+# per login
+$ chsh -s $(which bash)
+$ chsh -s $(which zsh)
+
+# list shells
+$ cat /etc/shells
+```
