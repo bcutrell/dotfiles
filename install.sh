@@ -2,11 +2,25 @@
 
 # Resources
 # https://sourabhbajaj.com/mac-setup/
+# https://github.com/pyenv/pyenv
+# https://docs.anaconda.com/free/miniconda/index.html
+# https://docs.brew.sh/Homebrew-on-Linux
+
+# Linux Homebrew Path
+# test -d ~/.linuxbrew && eval "$(~/.linuxbrew/bin/brew shellenv)"
+# test -d /home/linuxbrew/.linuxbrew && eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"
+# echo "eval \"\$($(brew --prefix)/bin/brew shellenv)\"" >> ~/.zshrc
+
+# Mac Homebrew Path
+# echo "eval \"\$(/opt/homebrew/bin/brew shellenv)\"" >> ~/.zshrc
 
 # Mac CLI tools
-xcode-select --install
+if [[ "$OSTYPE" == "darwin"* ]]; then
+    echo "Installing Xcode CLI tools..."
+    xcode-select --install
+fi
 
-# Homebrew 
+# Homebrew
 if ! command -v brew &>/dev/null; then
     echo "Installing Homebrew..."
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -16,6 +30,7 @@ fi
 
 if ! command -v brew &>/dev/null; then
     echo "Failed to configure Homebrew in PATH. Please add Homebrew to your PATH manually."
+    echo
     exit 1
 fi
 
@@ -30,6 +45,9 @@ brew cleanup
 #
 packages=(
     "python3"
+    "go"
+    "rust"
+    "node"
     "nvim"
     "bash"
     "zsh"
@@ -37,6 +55,8 @@ packages=(
     "tree"
     "fzf"
     "ack"
+    "ripgrep"
+    "gh" # github
 )
 
 for package in "${packages[@]}"; do
