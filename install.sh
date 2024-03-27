@@ -4,6 +4,7 @@
 # https://sourabhbajaj.com/mac-setup/
 # https://github.com/pyenv/pyenv
 # https://docs.anaconda.com/free/miniconda/index.html
+# https://rye-up.com/
 # https://docs.brew.sh/Homebrew-on-Linux
 
 # Linux Homebrew Path
@@ -32,6 +33,18 @@ if ! command -v brew &>/dev/null; then
     echo "Failed to configure Homebrew in PATH. Please add Homebrew to your PATH manually."
     echo
     exit 1
+fi
+
+# Normal vim
+echo "Pathogen is a popular Vim plugin manager. Would you like to install it?"
+read -q "Install Pathogen? (y/n) " choice
+
+if [[ $choice = "y" || $choice = "Y" ]]; then
+    mkdir -p ~/.vim/autoload ~/.vim/bundle
+    curl -LSso ~/.vim/autoload/pathogen.vim https://tpope.io/vim/pathogen.vim
+    echo "Pathogen installed!"
+else
+    echo "Skipping Pathogen installation."
 fi
 
 # Homebrew cleanup...
