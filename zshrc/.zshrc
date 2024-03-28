@@ -12,7 +12,6 @@ plugins=(
     last-working-dir
     common-aliases
     history-substring-search
-    poetry
 )
 
 source $ZSH/oh-my-zsh.sh # Load oh-my-zsh
@@ -46,13 +45,7 @@ export PATH="$HOME/.cargo/bin:$PATH"
 #
 # Python
 #
-export PYENV_VIRTUALENV_DISABLE_PROMPT=1
-export PYENV_ROOT="$HOME/.pyenv"
 export PYTHONBREAKPOINT=ipdb.set_trace
-[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
-# prompt
-type -a pyenv > /dev/null && eval "$(pyenv init -)" && eval "$(pyenv virtualenv-init - 2> /dev/null)" && RPROMPT+='[🐍 $(pyenv version-name)]'
-eval "$(pyenv init -)"
 
 #
 # Alias
@@ -60,6 +53,7 @@ eval "$(pyenv init -)"
 alias restart_shell="exec $SHELL"
 alias ls='ls --color=auto'
 alias c="clear"
+alias search="rg -S"
 
 # git
 alias gs="git status"
@@ -69,3 +63,4 @@ alias gd="git diff"
 alias gb="git branch"
 alias gl="git log"
 alias gs="git status"
+

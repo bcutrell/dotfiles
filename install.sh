@@ -70,6 +70,8 @@ packages=(
     "ack"
     "ripgrep"
     "gh" # github
+    "gum"
+    "glow"
 )
 
 for package in "${packages[@]}"; do
