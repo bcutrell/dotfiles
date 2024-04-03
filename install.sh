@@ -4,7 +4,6 @@
 # https://sourabhbajaj.com/mac-setup/
 # https://github.com/pyenv/pyenv
 # https://docs.anaconda.com/free/miniconda/index.html
-# https://rye-up.com/
 # https://docs.brew.sh/Homebrew-on-Linux
 
 # Linux Homebrew Path
@@ -45,6 +44,18 @@ if [[ $choice = "y" || $choice = "Y" ]]; then
     echo "Pathogen installed!"
 else
     echo "Skipping Pathogen installation."
+fi
+
+# Rye
+# https://rye-up.com/
+echo "rye is a python package manager. Would you like to install it?"
+read -q "Install rye? (y/n) " choice
+
+if [[ $choice = "y" || $choice = "Y" ]]; then
+    curl -sSf https://rye-up.com/get | bash
+    echo "rye installed!"
+else
+    echo "Skipping rye installation."
 fi
 
 # Homebrew cleanup...

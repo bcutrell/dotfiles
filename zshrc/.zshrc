@@ -63,4 +63,4 @@ alias gd="git diff"
 alias gb="git branch"
 alias gl="git log"
 alias gs="git status"
-
+source "$HOME/.rye/env"
