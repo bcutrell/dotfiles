@@ -34,17 +34,18 @@ if ! command -v brew &>/dev/null; then
     exit 1
 fi
 
-# Normal vim
-echo "Pathogen is a popular Vim plugin manager. Would you like to install it?"
-read -q "Install Pathogen? (y/n) " choice
+# Oh My Zsh
+echo "Oh My Zsh is a delightful, open source, community-driven framework for managing your Zsh configuration. Would you like to install it?"
+read -q "Install Oh My Zsh? (y/n) " choice
 
 if [[ $choice = "y" || $choice = "Y" ]]; then
-    mkdir -p ~/.vim/autoload ~/.vim/bundle
-    curl -LSso ~/.vim/autoload/pathogen.vim https://tpope.io/vim/pathogen.vim
-    echo "Pathogen installed!"
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    echo "Oh My Zsh installed!"
 else
-    echo "Skipping Pathogen installation."
+    echo "Skipping Oh My Zsh installation."
 fi
+
+
 
 # Rye
 # https://rye-up.com/
