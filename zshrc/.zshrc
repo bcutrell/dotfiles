@@ -47,6 +47,9 @@ export PATH="$HOME/.cargo/bin:$PATH"
 #
 export PYTHONBREAKPOINT=ipdb.set_trace
 
+# rye
+source "$HOME/.rye/env"
+
 #
 # Alias
 #
@@ -63,4 +66,4 @@ alias gd="git diff"
 alias gb="git branch"
 alias gl="git log"
 alias gs="git status"
-source "$HOME/.rye/env"
+
