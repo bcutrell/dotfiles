@@ -9,6 +9,65 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 fi
 
 #
+# Oh My Zsh
+#
+# https://ohmyz.sh/#install
+echo "Oh My Zsh is a delightful, open source, community-driven framework for managing your Zsh configuration. Would you like to install it?"
+read -q "Install Oh My Zsh? (y/n) " choice
+
+if [[ $choice = "y" || $choice = "Y" ]]; then
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+    echo "Oh My Zsh installed!"
+else
+    echo "Skipping Oh My Zsh installation."
+fi
+
+#
+# Rye
+#
+# https://rye-up.com/
+echo "rye is a python package manager. Would you like to install it?"
+read -q "Install rye? (y/n) " choice
+
+if [[ $choice = "y" || $choice = "Y" ]]; then
+    curl -sSf https://rye-up.com/get | bash
+    echo "rye installed!"
+else
+    echo "Skipping rye installation."
+fi
+
+#
+# Neovim
+#
+echo "neovim is a hyperextensible text editor based on Vim. Would you like to install it without using Homebrew?"
+read -q "Install neovim without Homebrew? (y/n) " choice
+
+if [[ $choice = "y" || $choice = "Y" ]]; then
+    if [[ "$OSTYPE" == "linux"* ]]; then
+        echo "Detected Linux OS..."
+        # Check if nvim is already installed
+        if ! command -v nvim &> /dev/null; then
+            echo "neovim could not be found, installing using wget..."
+            wget https://github.com/neovim/neovim/releases/download/v0.9.1/nvim.appimage
+            chmod u+x nvim.appimage && ./nvim.appimage
+            ./nvim.appimage --appimage-extract
+            sudo cp ./squashfs-root/usr/bin/nvim /usr/bin/nvim
+        fi
+    elif [[ "$OSTYPE" == "darwin"* ]]; then
+        echo "Detected MacOS..."
+        # Check if nvim is already installed
+        if ! command -v nvim &> /dev/null; then
+            curl -LO https://github.com/neovim/neovim/releases/download/nightly/nvim-macos-x86_64.tar.gz
+            tar xzf nvim-macos-x86_64.tar.gz
+            ./nvim-macos-x86_64/bin/nvim
+        fi
+    else
+        echo "Unsupported OS detected. This script supports Linux and MacOS only."
+        exit 1
+    fi
+fi
+
+#
 # Homebrew
 #
 # https://sourabhbajaj.com/mac-setup/
@@ -45,34 +104,12 @@ if [[ $choice = "y" || $choice = "Y" ]]; then
     fi
 fi
 
-#
-# Oh My Zsh
-#
-# https://ohmyz.sh/#install
-echo "Oh My Zsh is a delightful, open source, community-driven framework for managing your Zsh configuration. Would you like to install it?"
-read -q "Install Oh My Zsh? (y/n) " choice
-
-if [[ $choice = "y" || $choice = "Y" ]]; then
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-    echo "Oh My Zsh installed!"
-else
-    echo "Skipping Oh My Zsh installation."
+# Check if Homebrew is installed, if not, exit
+if ! command -v brew &>/dev/null; then
+    echo "Homebrew is not installed. Skipping package and app installations."
+    echo
+    exit 1
 fi
-
-#
-# Rye
-#
-# https://rye-up.com/
-echo "rye is a python package manager. Would you like to install it?"
-read -q "Install rye? (y/n) " choice
-
-if [[ $choice = "y" || $choice = "Y" ]]; then
-    curl -sSf https://rye-up.com/get | bash
-    echo "rye installed!"
-else
-    echo "Skipping rye installation."
-fi
-
 
 #
 # Install packages
@@ -95,7 +132,7 @@ packages=(
     "glow"
 )
 
-echo "Install the following packages? with Homebrew?"
+echo "Install the following packages with Homebrew?"
 echo "${packages[@]}"
 read -q "Install packages? (y/n) " choice
 
