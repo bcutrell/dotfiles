@@ -37,8 +37,6 @@ else
     echo "Skipping rye installation."
 fi
 
-
-
 # Neovim
 echo "neovim is a hyperextensible text editor based on Vim. Would you like to install it without using Homebrew?"
 if prompt_install "Install neovim without Homebrew?"; then
