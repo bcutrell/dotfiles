@@ -1,30 +1,10 @@
-#
-# oh-my-zsh
-#
-export ZSH=$HOME/.oh-my-zsh # Path to  oh-my-zsh installation
-
-# https://github.com/robbyrussell/oh-my-zsh/wiki/themes
-ZSH_THEME="robbyrussell"
-
-plugins=(
-    git
-    gitfast
-    last-working-dir
-    common-aliases
-    history-substring-search
-)
-
-source $ZSH/oh-my-zsh.sh # Load oh-my-zsh
-unalias rm # No interactive rm by default (brought by plugins/common-aliases)
-
 # Encoding
 export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 
 # User configuration
 export EDITOR='nvim'
-export SHELL="zsh"
-
+export SHELL="bash"
 
 #
 # Ruby
