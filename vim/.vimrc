@@ -11,15 +11,7 @@ nnoremap <C-L> <C-W>l
 nnoremap <C-H> <C-W>h
 
 syntax enable
-" colors managed by iterm
-" set background=light
-" let g:solarized_termcolors=256
-" set background=dark
-" colorscheme solarized
-" let g:solarized_termcolors=16
-" let g:solarized_visibility = "high"
-" let g:solarized_contrast = "high"
-" let g:solarized_termtrans=1
+colorscheme retrobox
 
 autocmd Filetype gitcommit setlocal spell textwidth=72
 

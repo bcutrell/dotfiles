@@ -19,15 +19,6 @@ prompt_install() {
     done
 }
 
-# Oh My Zsh
-echo "Oh My Zsh is a delightful, open source, community-driven framework for managing your Zsh configuration. Would you like to install it?"
-if prompt_install "Install Oh My Zsh?"; then
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
-    echo "Oh My Zsh installed!"
-else
-    echo "Skipping Oh My Zsh installation."
-fi
-
 # Rye
 echo "rye is a python package manager. Would you like to install it?"
 if prompt_install "Install rye?"; then
@@ -35,6 +26,16 @@ if prompt_install "Install rye?"; then
     echo "rye installed!"
 else
     echo "Skipping rye installation."
+fi
+
+# Starship
+echo "starship is a cross-shell prompt. Would you like to install it?"
+if prompt_install "Install starship?"; then
+    if ! command -v starship >/dev/null 2>&1; then
+        sh -c "$(curl -fsSL https://starship.rs/install.sh)"
+    else
+        echo "starship is already installed."
+    fi
 fi
 
 # Neovim
