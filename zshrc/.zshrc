@@ -54,3 +54,7 @@ alias gb="git branch"
 alias gl="git log"
 
 eval "$(starship init zsh)"
+
+setopt histignoredups
+
+alias history="fc -l $NUMBER"
