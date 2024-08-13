@@ -69,22 +69,10 @@ install_xcode_cli() {
 install_rye() {
     echo "rye is a python package manager. Would you like to install it?"
     if prompt_install "Install rye?"; then
-        curl -sSf https://rye-up.com/get | bash
+	curl -sSf https://rye.astral.sh/get | bash
         echo "rye installed!"
     else
         echo "Skipping rye installation."
-    fi
-}
-
-# Function to install starship
-install_starship() {
-    echo "starship is a cross-shell prompt. Would you like to install it?"
-    if prompt_install "Install starship?"; then
-        if ! command -v starship >/dev/null 2>&1; then
-            sh -c "$(curl -fsSL https://starship.rs/install.sh)"
-        else
-            echo "starship is already installed."
-        fi
     fi
 }
 
@@ -117,7 +105,7 @@ install_neovim() {
 
 # Function to install Homebrew packages
 install_packages() {
-    packages="python3 go rust node nvim bash zsh git tree fzf ack ripgrep gh gum glow"
+    packages="go rust node nvim starship bash zsh git tree fzf ack ripgrep gh gum glow stow"
     echo "Install the following packages with Homebrew?"
     echo "$packages"
     if prompt_install "Install packages?"; then
@@ -134,7 +122,7 @@ install_packages() {
 
 # Function to install Homebrew cask apps
 install_apps() {
-    apps="google-chrome firefox rectangle postman"
+    apps="rectangle postman"
     echo "Install the following apps with Homebrew?"
     echo "$apps"
     if prompt_install "Install apps?"; then
@@ -154,8 +142,6 @@ main() {
     install_xcode_cli
     check_homebrew
     install_rye
-    install_starship
-    install_neovim
     install_packages
     install_apps
 }
