@@ -35,7 +35,7 @@ export SHELL="zsh"
 
 # rye
 # uncomment to use rye
-# source "$HOME/.rye/env"
+source "$HOME/.rye/env"
 
 #
 # Alias
