@@ -63,7 +63,8 @@ cp ./squashfs-root/usr/bin/nvim usr/bin/nvim
 
 ## Fonts
 
-- [Nerd Font](https://www.nerdfonts.com/): optional, provides various icons
+- [JetBrains Mono](https://www.jetbrains.com/lp/mono/): optional, provides various icons
+- [Nerd Font](https://www.nerdfonts.com/): More options
 
 ## Shells
 
