@@ -58,3 +58,7 @@ eval "$(starship init zsh)"
 setopt histignoredups
 
 alias history="fc -l $NUMBER"
+
+alias gitapplyplz="git apply --ignore-space-change --ignore-whitespace"
+
+alias findlarge='function _findlarge() { find "${1:-.}" -type f -print0 | xargs -0 du -sh | sort -rh | head -n "${2:-10}"; }; _findlarge'
