@@ -88,6 +88,10 @@ $ chsh -s $(which zsh)
 
 # list shells
 $ cat /etc/shells
+
+# install java
+$ brew install java
+$ sudo ln -sfn /opt/homebrew/opt/openjdk/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk.jdk
 ```
 
 # Kickstart.nvim Key Mappings
