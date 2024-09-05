@@ -122,7 +122,7 @@ install_packages() {
 
 # Function to install Homebrew cask apps
 install_apps() {
-    apps="rectangle postman"
+    apps="rectangle postman dbeaver-community"
     echo "Install the following apps with Homebrew?"
     echo "$apps"
     if prompt_install "Install apps?"; then
