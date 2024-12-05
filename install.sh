@@ -12,6 +12,11 @@ is_linux() {
     [ "$(uname)" = "Linux" ]
 }
 
+# Function to check if we're on Windows
+is_windows() {
+    [ "$(uname -o)" = "Msys" ] || [ "$(uname -o)" = "Cygwin" ]
+}
+
 # Function to prompt user for installation
 prompt_install() {
     while true; do
@@ -43,6 +48,26 @@ install_homebrew() {
             brew upgrade
             brew upgrade --cask
             brew cleanup
+        fi
+    fi
+}
+
+# Function to install Chocolatey on Windows
+install_chocolatey() {
+    echo "Chocolatey is a package manager for Windows. Would you like to install it?"
+    if prompt_install "Install Chocolatey?"; then
+        if ! command -v choco >/dev/null 2>&1; then
+            echo "Installing Chocolatey..."
+            powershell -NoProfile -ExecutionPolicy Bypass -Command "Set-ExecutionPolicy Bypass -Scope Process; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))"
+        else
+            echo "Chocolatey is already installed."
+        fi
+        if ! command -v choco >/dev/null 2>&1; then
+            echo "Failed to configure Chocolatey in PATH. Please add Chocolatey to your PATH manually."
+            return 1
+        else
+            echo "Chocolatey installed!"
+            choco upgrade all -y
         fi
     fi
 }
@@ -96,8 +121,13 @@ install_neovim() {
                 tar xzf nvim-macos.tar.gz
                 ./nvim-macos/bin/nvim
             fi
+        elif is_windows; then
+            echo "Detected Windows OS..."
+            if ! command -v nvim >/dev/null 2>&1; then
+                choco install neovim -y
+            fi
         else
-            echo "Unsupported OS detected. This script supports Linux and macOS only."
+            echo "Unsupported OS detected. This script supports Linux, macOS, and Windows only."
             return 1
         fi
     fi
@@ -109,14 +139,25 @@ install_packages() {
     echo "Install the following packages with Homebrew?"
     echo "$packages"
     if prompt_install "Install packages?"; then
-        for package in $packages; do
-            if brew list --formula | grep -q "^$package\$"; then
-                echo "$package is already installed. Skipping..."
-            else
-                echo "Installing $package..."
-                brew install "$package"
-            fi
-        done
+        if is_windows; then
+            for package in $packages; do
+                if choco list --local-only | grep -q "^$package\$"; then
+                    echo "$package is already installed. Skipping..."
+                else
+                    echo "Installing $package..."
+                    choco install "$package" -y
+                fi
+            done
+        else
+            for package in $packages; do
+                if brew list --formula | grep -q "^$package\$"; then
+                    echo "$package is already installed. Skipping..."
+                else
+                    echo "Installing $package..."
+                    brew install "$package"
+                fi
+            done
+        fi
     fi
 }
 
@@ -126,14 +167,25 @@ install_apps() {
     echo "Install the following apps with Homebrew?"
     echo "$apps"
     if prompt_install "Install apps?"; then
-        for app in $apps; do
-            if brew list --cask | grep -q "^$app\$"; then
-                echo "$app is already installed. Skipping..."
-            else
-                echo "Installing $app..."
-                brew install --cask "$app"
-            fi
-        done
+        if is_windows; then
+            for app in $apps; do
+                if choco list --local-only | grep -q "^$app\$"; then
+                    echo "$app is already installed. Skipping..."
+                else
+                    echo "Installing $app..."
+                    choco install "$app" -y
+                fi
+            done
+        else
+            for app in $apps; do
+                if brew list --cask | grep -q "^$app\$"; then
+                    echo "$app is already installed. Skipping..."
+                else
+                    echo "Installing $app..."
+                    brew install --cask "$app"
+                fi
+            done
+        fi
     fi
 }
 
