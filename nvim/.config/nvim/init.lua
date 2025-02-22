@@ -658,18 +658,17 @@ require('lazy').setup({
       --  - settings (table): Override the default settings passed when initializing the server.
       --        For example, to see the options for `lua_ls`, you could go to: https://luals.github.io/wiki/settings/
       local servers = {
-        -- clangd = {},
-        -- gopls = {},
-        -- pyright = {},
-        -- rust_analyzer = {},
+        clangd = {
+          filetypes = { 'cpp' },
+        },
+        pyright = {
+          filetypes = { 'python' },
+        },
+        gopls = {
+          filetypes = { 'go' },
+        },
+        rust_analyzer = { 'rs' },
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
-        --
-        -- Some languages (like typescript) have entire language plugins that can be useful:
-        --    https://github.com/pmizio/typescript-tools.nvim
-        --
-        -- But for many setups, the LSP (`ts_ls`) will work just fine
-        -- ts_ls = {},
-        --
 
         lua_ls = {
           -- cmd = { ... },
@@ -941,6 +940,8 @@ require('lazy').setup({
       statusline.section_location = function()
         return '%2l:%-2v'
       end
+      -- fast and flexible start screen
+      require('mini.starter').setup()
 
       -- ... and there is more!
       --  Check out: https://github.com/echasnovski/mini.nvim
