@@ -77,7 +77,7 @@ install_chocolatey() {
 }
 
 #
-# --- Installs ---
+# --- macos installs ---
 #
 install_xcode_cli() {
     if is_macos; then
@@ -86,28 +86,11 @@ install_xcode_cli() {
     fi
 }
 
-install_apt_packages() {
-  packages=("make" "gcc" "ripgrep" "unzip" "git" "xclip" "curl")
-  sudo apt update
-  sudo apt install -y "${packages[@]}"
-}
-
 install_neovim_macos() {
   if ! command_exists nvim; then
     curl -LO https://github.com/neovim/neovim/releases/download/nightly/nvim-macos.tar.gz
     tar xzf nvim-macos.tar.gz
     ./nvim-macos/bin/nvim
-  fi
-}
-
-install_neovim_debian() {
-  if ! command_exists nvim; then
-    curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
-    sudo rm -rf /opt/nvim-linux-x86_64
-    sudo mkdir -p /opt/nvim-linux-x86_64
-    sudo chmod a+rX /opt/nvim-linux-x86_64
-    sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz
-    sudo ln -sf /opt/nvim-linux-x86_64/bin/nvim /usr/local/bin/
   fi
 }
 
@@ -138,8 +121,22 @@ install_apps_macos() {
     fi
 }
 
+#
+# --- debian installs ---
+#
+install_neovim_debian() {
+  if ! command_exists nvim; then
+    curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
+    sudo rm -rf /opt/nvim-linux-x86_64
+    sudo mkdir -p /opt/nvim-linux-x86_64
+    sudo chmod a+rX /opt/nvim-linux-x86_64
+    sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz
+    sudo ln -sf /opt/nvim-linux-x86_64/bin/nvim /usr/local/bin/
+  fi
+}
+
 install_packages_debian() {
-    packages="go rust node neovim starship bash zsh git tree fzf ack ripgrep gh gum glow stow"
+    packages=("make" "gcc" "ripgrep" "unzip" "git" "xclip" "curl" "stow")
     echo "Install the following packages with apt?"
     echo "$packages"
     if prompt_install "Install packages?"; then
@@ -148,8 +145,11 @@ install_packages_debian() {
     fi
 }
 
+#
+# --- windows installs ---
+#
 install_packages_windows() {
-    packages="go rust node neovim starship bash zsh git tree fzf ack ripgrep gh gum glow stow"
+    packages=("make" "gcc" "ripgrep" "unzip" "git" "xclip" "curl" "stow")
     echo "Install the following packages with choco?"
     echo "$packages"
     if prompt_install "Install packages?"; then
