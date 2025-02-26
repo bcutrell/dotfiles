@@ -668,6 +668,7 @@ require('lazy').setup({
           filetypes = { 'go' },
         },
         rust_analyzer = { 'rs' },
+        ruby_lsp = { 'rb' },
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
 
         lua_ls = {
@@ -722,6 +723,19 @@ require('lazy').setup({
     end,
   },
 
+  { -- vimwiki
+    'vimwiki/vimwiki',
+    init = function()
+      vim.g.vimwiki_list = {
+        {
+          path = '~/docs/vimwiki',
+          syntax = 'default',
+          ext = '.wiki',
+        },
+      }
+    end,
+  },
+
   { -- Autoformat
     'stevearc/conform.nvim',
     event = { 'BufWritePre' },
@@ -756,11 +770,12 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
-        -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
-        --
-        -- You can use 'stop_after_first' to run the first available formatter from the list
-        -- javascript = { "prettierd", "prettier", stop_after_first = true },
+        -- go install mvdan.cc/sh/v3/cmd/shfmt@latest
+        -- brew install shfmt
+        sh = { 'shfmt' },
+
+        -- brew install ruff
+        -- python = { 'ruff' },
       },
     },
   },
