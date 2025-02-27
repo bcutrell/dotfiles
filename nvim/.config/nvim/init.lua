@@ -667,8 +667,15 @@ require('lazy').setup({
         gopls = {
           filetypes = { 'go' },
         },
-        rust_analyzer = { 'rs' },
-        ruby_lsp = { 'rb' },
+        rust_analyzer = {
+          filetypes = { 'rs' },
+        },
+        -- ruby_lsp = {
+        -- init_options = {
+        --           formatter = 'standard',
+        --           linters = { 'standard' },
+        --        },
+        --     },
         -- ... etc. See `:help lspconfig-all` for a list of all the pre-configured LSPs
 
         lua_ls = {
