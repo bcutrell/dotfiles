@@ -2,7 +2,7 @@
 
 ## Table of Contents
 
-1. [Stow](#stow)
+1. [Introduction](#introduction)
 2. [Vim](#vim)
 3. [Neovim](#neovim)
 4. [Ripgrep](#ripgrep)
@@ -10,7 +10,7 @@
 6. [Shells](#shells)
 7. [Snippets](#snippets)
 
-## Getting Started
+## Introduction
 
 This repository includes two main scripts for setup:
 - `install.sh`: Installs all required packages and tools
@@ -23,7 +23,7 @@ Run `install.sh` to install required packages (Homebrew, Neovim, Ripgrep, etc.):
 ./install.sh
 ```
 
-### Dotfiles Management
+### Stow
 
 The `stow.sh` script manages all dotfile symlinks. Available commands:
 
@@ -59,34 +59,7 @@ For manual stow operations, you can use these commands:
 
 ## Neovim
 
-This configuration uses [LazyVim](https://www.lazyvim.org/), a Neovim configuration framework.
-
-### Installation
-
-- Mac: `brew install nvim`
-- Debian: [Installation Instructions](#debian-neovim-installation)
-
-#### Debian Neovim Installation
-
-```shell
-sudo apt-get install neovim
-
-# or
-
-nvim --version | head -n 1
-wget https://github.com/neovim/neovim/releases/download/v0.9.1/nvim.appimage
-chmod u+x nvim.appimage && ./nvim.appimage
-./nvim.appimage --appimage-extract
-./squashfs-root/usr/bin/nvim
-
-# optional
-ln -s /usr/bin/nvim /usr/bin/vim
-cp ./squashfs-root/usr/bin/nvim usr/bin/nvim
-```
-
-## Ripgrep
-
-- [Installation Instructions](https://github.com/BurntSushi/ripgrep#installation)
+- This configuration is based on [kickstart.nvim](https://github.com/nvim-lua/kickstart.nvim)
 
 ## Fonts
 
@@ -120,5 +93,3 @@ $ cat /etc/shells
 $ brew install java
 $ sudo ln -sfn /opt/homebrew/opt/openjdk/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk.jdk
 ```
-
-Note: For LazyVim keymaps and configuration details, please refer to the [official LazyVim documentation](https://www.lazyvim.org/keymaps).
