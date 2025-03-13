@@ -9,6 +9,7 @@ endif
 call plug#begin('~/.vim/plugged')
 
 " File navigation
+
 Plug 'ctrlpvim/ctrlp.vim'
 Plug 'preservim/nerdtree'
 Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
@@ -25,7 +26,8 @@ Plug 'jiangmiao/auto-pairs'         " Auto pair brackets
 " Theme and visuals
 Plug 'itchyny/lightline.vim'        " Status line
 Plug 'ap/vim-css-color'             " Color preview
-Plug 'arcticicestudio/nord-vim'
+Plug 'ghifarit53/tokyonight-vim'
+
 
 call plug#end()
 
@@ -56,12 +58,10 @@ set laststatus=2
 set scrolloff=8
 " set colorcolumn=80
 set termguicolors
-let g:nord_italic = 1
-let g:nord_italic_comments = 1
-let g:nord_uniform_status_lines = 1
-let g:nord_uniform_diff_background = 1
-let g:nord_cursor_line_number_background = 1
-colorscheme nord
+let g:tokyonight_style = 'night' " Options: 'storm', 'night', 'day'
+let g:tokyonight_enable_italic = 1
+let g:tokyonight_transparent_background = 0
+colorscheme tokyonight
 
 " Indentation
 set autoindent
@@ -110,7 +110,7 @@ nmap ,r :Rg<CR>
 
 " Lightline
 let g:lightline = {
-      \ 'colorscheme': 'nord',
+      \ 'colorscheme': 'tokyonight',
       \ 'active': {
       \   'left': [ [ 'mode', 'paste' ],
       \             [ 'gitbranch', 'readonly', 'filename', 'modified' ] ]
