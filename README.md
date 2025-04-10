@@ -92,4 +92,8 @@ $ cat /etc/shells
 # install java
 $ brew install java
 $ sudo ln -sfn /opt/homebrew/opt/openjdk/libexec/openjdk.jdk /Library/Java/JavaVirtualMachines/openjdk.jdk
+
+# enable key repeat for mac IDEs
+$ defaults write "$(osascript -e 'id of app "<IDE>"')" ApplePressAndHoldEnabled -bool false
+$ defaults write com.microsoft.VSCode ApplePressAndHoldEnabled -bool false
 ```
