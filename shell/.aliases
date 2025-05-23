@@ -19,3 +19,4 @@ alias gc="git commit"
 # utility
 alias findlarge='function _findlarge() { find "${1:-.}" -type f -print0 | xargs -0 du -sh | sort -rh | head -n "${2:-10}"; }; _findlarge'
 alias dirsize='du -h --max-depth=1 | sort -hr'
+alias mv_unstaged='mkdir -p unstaged && git ls-files --others --exclude-standard | xargs -I {} mv {} unstaged/'
