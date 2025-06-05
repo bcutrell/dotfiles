@@ -88,19 +88,46 @@ install_xcode_cli() {
 
 install_neovim_macos() {
     if ! command_exists nvim; then
+        echo "Installing Neovim..."
         curl -LO https://github.com/neovim/neovim/releases/download/nightly/nvim-macos.tar.gz
         tar xzf nvim-macos.tar.gz
-        ./nvim-macos/bin/nvim
+        sudo mv nvim-macos /opt/
+        sudo ln -sf /opt/nvim-macos/bin/nvim /usr/local/bin/nvim
+        rm nvim-macos.tar.gz
+        echo "Neovim installed successfully"
+    else
+        echo "Neovim is already installed."
     fi
 }
 
 install_packages_macos() {
-    packages="go rust node nvim starship bash zsh git tree fzf ack ripgrep gh gum glow stow"
+    # Core packages needed for the dotfiles setup
+    packages="go rust node nvim starship bash zsh git tree fzf ack ripgrep gh gum glow stow bat"
     echo "Install the following packages with Homebrew?"
     echo "$packages"
     if prompt_install "Install packages?"; then
         for package in $packages; do
-            brew install "$package"
+            if brew list | grep -q "^$package\$"; then
+                echo "$package is already installed. Skipping..."
+            else
+                echo "Installing $package..."
+                brew install "$package"
+            fi
+        done
+    fi
+    
+    # Additional development tools (optional)
+    dev_packages="make gcc unzip curl wget"
+    echo "Install additional development tools?"
+    echo "$dev_packages"
+    if prompt_install "Install dev tools?"; then
+        for package in $dev_packages; do
+            if brew list | grep -q "^$package\$"; then
+                echo "$package is already installed. Skipping..."
+            else
+                echo "Installing $package..."
+                brew install "$package"
+            fi
         done
     fi
 }
@@ -126,22 +153,44 @@ install_apps_macos() {
 #
 install_neovim_debian() {
     if ! command_exists nvim; then
+        echo "Installing Neovim..."
         curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz
         sudo rm -rf /opt/nvim-linux-x86_64
         sudo mkdir -p /opt/nvim-linux-x86_64
         sudo chmod a+rX /opt/nvim-linux-x86_64
         sudo tar -C /opt -xzf nvim-linux-x86_64.tar.gz
         sudo ln -sf /opt/nvim-linux-x86_64/bin/nvim /usr/local/bin/
+        rm nvim-linux-x86_64.tar.gz
+        echo "Neovim installed successfully"
+    else
+        echo "Neovim is already installed."
+    fi
+}
+
+install_starship_debian() {
+    if ! command_exists starship; then
+        echo "Installing Starship..."
+        curl -sS https://starship.rs/install.sh | sh
+    else
+        echo "Starship is already installed."
     fi
 }
 
 install_packages_debian() {
-    packages="make gcc ripgrep unzip git xclip curl stow"
+    # Core packages
+    packages="make gcc ripgrep unzip git curl wget stow nodejs npm python3 python3-pip bat"
     echo "Install the following packages with apt?"
     echo "$packages"
     if prompt_install "Install packages?"; then
         sudo apt update
         sudo apt install -y $packages
+    fi
+    
+    # Install Node.js LTS if not already installed
+    if ! command_exists node; then
+        echo "Installing Node.js LTS..."
+        curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+        sudo apt-get install -y nodejs
     fi
 }
 
@@ -149,7 +198,7 @@ install_packages_debian() {
 # --- windows installs ---
 #
 install_packages_windows() {
-    packages="make gcc ripgrep unzip git xclip curl stow"
+    packages="make mingw ripgrep unzip git curl stow nodejs python bat"
     echo "Install the following packages with choco?"
     echo "$packages"
     if prompt_install "Install packages?"; then
@@ -165,9 +214,43 @@ install_packages_windows() {
 }
 
 #
+# --- Post-install setup ---
+#
+setup_neovim() {
+    echo "Setting up Neovim..."
+    
+    # Create necessary directories
+    mkdir -p ~/.config/nvim
+    mkdir -p ~/docs/vimwiki
+    
+    echo "Neovim setup complete."
+    echo "After stowing configs, run 'nvim' and plugins will auto-install via lazy.nvim"
+    echo "Use ':checkhealth' in Neovim to verify everything is working"
+}
+
+print_next_steps() {
+    echo ""
+    echo "=== Installation Complete ==="
+    echo ""
+    echo "Next steps:"
+    echo "1. Run './stow.sh install' to link configuration files"
+    echo "2. Restart your terminal or run 'source ~/.zshrc' (or ~/.bashrc)"
+    echo "3. Open Neovim with 'nvim' - plugins will auto-install"
+    echo "4. In Neovim, run ':checkhealth' to verify setup"
+    echo "5. Run ':Mason' to manage LSP servers"
+    echo ""
+    echo "Optional:"
+    echo "- Install a Nerd Font for better icons: https://www.nerdfonts.com/"
+    echo "- Set vim.g.have_nerd_font = true in nvim config if using Nerd Font"
+    echo ""
+}
+
+#
 # --- Main ---
 #
 main() {
+    echo "Starting dotfiles installation..."
+    
     if is_macos; then
         install_xcode_cli
         install_homebrew
@@ -180,10 +263,14 @@ main() {
     elif is_debian; then
         install_packages_debian
         install_neovim_debian
+        install_starship_debian
     else
         echo "Unsupported OS."
         return 1
     fi
+    
+    setup_neovim
+    print_next_steps
 }
 
 main "$@"

@@ -11,6 +11,11 @@ if [ -f ~/.aliases ]; then
 	. ~/.aliases
 fi
 
+# Ubuntu bat compatibility
+if command -v batcat >/dev/null 2>&1 && ! command -v bat >/dev/null 2>&1; then
+    alias bat="batcat"
+fi
+
 #
 # Ruby
 #
@@ -41,7 +46,6 @@ fi
 # uncomment to use rye
 source "$HOME/.rye/env"
 
+# startship
+# uncomment to use starship 
 eval "$(starship init zsh)"
-
-setopt histignoredups
-alias history="fc -l $NUMBER"
