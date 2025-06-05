@@ -119,19 +119,19 @@ vim.schedule(function()
 end)
 
 -- Sync clipboard between ssh instance and Neovim.
-if vim.fn.has 'nvim' == 1 then
-  vim.g.clipboard = {
-    name = 'OSC 52',
-    copy = {
-      ['+'] = require('vim.ui.clipboard.osc52').copy '+',
-      ['*'] = require('vim.ui.clipboard.osc52').copy '*',
-    },
-    paste = {
-      ['+'] = require('vim.ui.clipboard.osc52').paste '+',
-      ['*'] = require('vim.ui.clipboard.osc52').paste '*',
-    },
-  }
-end
+-- if vim.fn.has 'nvim' == 1 then
+--   vim.g.clipboard = {
+--     name = 'OSC 52',
+--     copy = {
+--       ['+'] = require('vim.ui.clipboard.osc52').copy '+',
+--       ['*'] = require('vim.ui.clipboard.osc52').copy '*',
+--     },
+--     paste = {
+--       ['+'] = require('vim.ui.clipboard.osc52').paste '+',
+--       ['*'] = require('vim.ui.clipboard.osc52').paste '*',
+--     },
+--   }
+-- end
 
 -- Enable break indent
 vim.opt.breakindent = true
@@ -197,6 +197,11 @@ vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left wind
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
+
+-- [[ Basic Userommands ]]
+vim.api.nvim_create_user_command('RemoveTrailingWhitespace', function()
+  vim.cmd [[%s/\s\+$//e]]
+end, {})
 
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
