@@ -4,7 +4,8 @@
 alias restart_shell="exec $SHELL"
 alias ls='ls --color=auto'
 alias c="clear"
-alias search="rg -S"
+alias search="rg -S --no-ignore"
+alias nvim_config="nvim ~/.config/nvim/init.lua"
 
 # git
 alias gs="git status"
@@ -20,3 +21,7 @@ alias gc="git commit"
 alias findlarge='function _findlarge() { find "${1:-.}" -type f -print0 | xargs -0 du -sh | sort -rh | head -n "${2:-10}"; }; _findlarge'
 alias dirsize='du -h --max-depth=1 | sort -hr'
 alias mv_unstaged='mkdir -p unstaged && git ls-files --others --exclude-standard | xargs -I {} mv {} unstaged/'
+alias ports='sudo ss -tulpn'
+alias listening='sudo ss -tlpn'
+alias portcheck='sudo netstat -tulpn'
+alias openports='sudo lsof -i'
