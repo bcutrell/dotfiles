@@ -37,6 +37,9 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+-- Terminal git diff keymap
+vim.keymap.set('n', '<leader>gd', '<cmd>terminal git diff<CR>', { desc = 'git diff all files' })
+
 -- Autocommands
 vim.api.nvim_create_autocmd('TextYankPost', {
   desc = 'Highlight when yanking text',
@@ -115,9 +118,18 @@ require('lazy').setup({
           BS = '<BS> ',
           Space = '<Space> ',
           Tab = '<Tab> ',
-          F1 = '<F1>', F2 = '<F2>', F3 = '<F3>', F4 = '<F4>',
-          F5 = '<F5>', F6 = '<F6>', F7 = '<F7>', F8 = '<F8>',
-          F9 = '<F9>', F10 = '<F10>', F11 = '<F11>', F12 = '<F12>',
+          F1 = '<F1>',
+          F2 = '<F2>',
+          F3 = '<F3>',
+          F4 = '<F4>',
+          F5 = '<F5>',
+          F6 = '<F6>',
+          F7 = '<F7>',
+          F8 = '<F8>',
+          F9 = '<F9>',
+          F10 = '<F10>',
+          F11 = '<F11>',
+          F12 = '<F12>',
         },
       },
       spec = {
@@ -128,6 +140,7 @@ require('lazy').setup({
         { '<leader>w', group = '[W]orkspace' },
         { '<leader>t', group = '[T]oggle' },
         { '<leader>h', group = '[H]arpoon', mode = { 'n', 'v' } },
+        { '<leader>g', group = '[G]it'},
       },
     },
   },
@@ -137,9 +150,9 @@ require('lazy').setup({
     'ibhagwan/fzf-lua',
     dependencies = { 'nvim-tree/nvim-web-devicons' },
     config = function()
-      local fzf = require('fzf-lua')
-      
-      fzf.setup({
+      local fzf = require 'fzf-lua'
+
+      fzf.setup {
         winopts = {
           height = 0.85,
           width = 0.80,
@@ -147,7 +160,7 @@ require('lazy').setup({
             default = 'bat',
           },
         },
-      })
+      }
 
       vim.keymap.set('n', '<leader>sh', fzf.help_tags, { desc = '[S]earch [H]elp' })
       vim.keymap.set('n', '<leader>sk', fzf.keymaps, { desc = '[S]earch [K]eymaps' })
@@ -163,11 +176,11 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>/', fzf.blines, { desc = '[/] Fuzzily search in current buffer' })
 
       vim.keymap.set('n', '<leader>s/', function()
-        fzf.grep({ search = "", fzf_opts = { ['--prompt'] = 'Live Grep in Open Files> ' } })
+        fzf.grep { search = '', fzf_opts = { ['--prompt'] = 'Live Grep in Open Files> ' } }
       end, { desc = '[S]earch [/] in Open Files' })
 
       vim.keymap.set('n', '<leader>sn', function()
-        fzf.files({ cwd = vim.fn.stdpath 'config' })
+        fzf.files { cwd = vim.fn.stdpath 'config' }
       end, { desc = '[S]earch [N]eovim files' })
     end,
   },
@@ -400,12 +413,12 @@ require('lazy').setup({
   -- Oil file explorer
   {
     'stevearc/oil.nvim',
-    dependencies = { { "echasnovski/mini.icons", opts = {} } },
+    dependencies = { { 'echasnovski/mini.icons', opts = {} } },
     lazy = false,
     opts = {},
     config = function()
       require('oil').setup()
-      vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
+      vim.keymap.set('n', '-', '<CMD>Oil<CR>', { desc = 'Open parent directory' })
     end,
   },
 
@@ -417,12 +430,24 @@ require('lazy').setup({
       local harpoon = require 'harpoon'
       harpoon:setup()
 
-      vim.keymap.set('n', '<leader>ha', function() harpoon:list():append() end, { desc = 'Harpoon: Add file' })
-      vim.keymap.set('n', '<leader>he', function() harpoon.ui:toggle_quick_menu(harpoon:list()) end, { desc = 'Harpoon: Toggle menu' })
-      vim.keymap.set('n', '<leader>hp', function() harpoon:list():prev() end, { desc = 'Harpoon: Go to previous file' })
-      vim.keymap.set('n', '<leader>hn', function() harpoon:list():next() end, { desc = 'Harpoon: Go to next file' })
-      vim.keymap.set('n', '<leader>hc', function() harpoon:list():clear() end, { desc = 'Harpoon: Clear all marks' })
-      vim.keymap.set('n', '<leader>hr', function() harpoon:list():remove() end, { desc = 'Harpoon: Remove current file' })
+      vim.keymap.set('n', '<leader>ha', function()
+        harpoon:list():add()
+      end, { desc = 'Harpoon: Add file' })
+      vim.keymap.set('n', '<leader>he', function()
+        harpoon.ui:toggle_quick_menu(harpoon:list())
+      end, { desc = 'Harpoon: Toggle menu' })
+      vim.keymap.set('n', '<leader>hp', function()
+        harpoon:list():prev()
+      end, { desc = 'Harpoon: Go to previous file' })
+      vim.keymap.set('n', '<leader>hn', function()
+        harpoon:list():next()
+      end, { desc = 'Harpoon: Go to next file' })
+      vim.keymap.set('n', '<leader>hc', function()
+        harpoon:list():clear()
+      end, { desc = 'Harpoon: Clear all marks' })
+      vim.keymap.set('n', '<leader>hr', function()
+        harpoon:list():remove()
+      end, { desc = 'Harpoon: Remove current file' })
 
       for i = 1, 3 do
         vim.keymap.set('n', string.format('<leader>%d', i), function()
@@ -451,7 +476,7 @@ require('lazy').setup({
     'folke/todo-comments.nvim',
     event = 'VimEnter',
     dependencies = { 'nvim-lua/plenary.nvim' },
-    opts = { signs = false }
+    opts = { signs = false },
   },
 
   -- Mini starter
@@ -462,6 +487,17 @@ require('lazy').setup({
     end,
   },
 
+  -- Git integration with fugitive
+  {
+    'tpope/vim-fugitive',
+    config = function()
+      -- Key mappings for common git operations
+      vim.keymap.set('n', '<leader>gs', '<cmd>Git<cr>', { desc = 'Git status' })
+      vim.keymap.set('n', '<leader>gD', '<cmd>Gvdiffsplit<cr>', { desc = 'Git diff split' })
+      vim.keymap.set('n', '<leader>gb', '<cmd>Git blame<cr>', { desc = 'Git blame' })
+      vim.keymap.set('n', '<leader>gl', '<cmd>Git log --oneline<cr>', { desc = 'Git log' })
+    end,
+  },
 }, {
   ui = {
     icons = vim.g.have_nerd_font and {} or {
