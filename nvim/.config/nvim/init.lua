@@ -31,14 +31,13 @@ end)
 -- Keymaps
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic quickfix list' })
-vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
--- Terminal git diff keymap
-vim.keymap.set('n', '<leader>gd', '<cmd>terminal git diff<CR>', { desc = 'git diff all files' })
+vim.keymap.set('n', '<leader>tv', '<cmd>vsplit | terminal<CR>', { desc = '[T]erminal [v]ertical split' })
+vim.keymap.set('n', '<leader>tn', '<cmd>tabnew | terminal<CR>', { desc = '[T]erminal [n]ew tab' })
 
 -- Autocommands
 vim.api.nvim_create_autocmd('TextYankPost', {
@@ -48,6 +47,9 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     vim.highlight.on_yank()
   end,
 })
+vim.api.nvim_create_user_command('RemoveTrailingWhitespace', function()
+  vim.cmd [[%s/\s\+$//e]]
+end, {})
 
 -- Install lazy.nvim
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
@@ -140,7 +142,8 @@ require('lazy').setup({
         { '<leader>w', group = '[W]orkspace' },
         { '<leader>t', group = '[T]oggle' },
         { '<leader>h', group = '[H]arpoon', mode = { 'n', 'v' } },
-        { '<leader>g', group = '[G]it'},
+        { '<leader>g', group = '[G]it' },
+        { '<leader>t', group = '[T]erminal' },
       },
     },
   },
@@ -248,7 +251,7 @@ require('lazy').setup({
           end
 
           if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
-            map('<leader>th', function()
+            map('<leader>ch', function()
               vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
             end, '[T]oggle Inlay [H]ints')
           end
@@ -491,11 +494,12 @@ require('lazy').setup({
   {
     'tpope/vim-fugitive',
     config = function()
-      -- Key mappings for common git operations
-      vim.keymap.set('n', '<leader>gs', '<cmd>Git<cr>', { desc = 'Git status' })
-      vim.keymap.set('n', '<leader>gD', '<cmd>Gvdiffsplit<cr>', { desc = 'Git diff split' })
-      vim.keymap.set('n', '<leader>gb', '<cmd>Git blame<cr>', { desc = 'Git blame' })
-      vim.keymap.set('n', '<leader>gl', '<cmd>Git log --oneline<cr>', { desc = 'Git log' })
+      vim.keymap.set('n', '<leader>gg', '<cmd>Git<cr>', { desc = '[G]it status' })
+      vim.keymap.set('n', '<leader>gv', '<cmd>Gvdiffsplit<cr>', { desc = '[G]it [v]ertical diff split' })
+      vim.keymap.set('n', '<leader>gd', '<cmd>vertical Git diff<cr>', { desc = '[G]it [D]iff' })
+      vim.keymap.set('n', '<leader>gb', '<cmd>Git blame<cr>', { desc = '[G]it [B]lame' })
+      vim.keymap.set('n', '<leader>gl', '<cmd>Git log --oneline<cr>', { desc = '[G]it [L]og' })
+      vim.keymap.set('n', '<leader>gc', '<cmd>Git commit<cr>', { desc = '[G]it [C]ommit' })
     end,
   },
 }, {
