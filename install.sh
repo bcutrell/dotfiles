@@ -100,6 +100,21 @@ install_neovim_macos() {
     fi
 }
 
+install_minimal_packages_macos() {
+    # Minimal packages for Neovim config
+    packages="nvim git curl unzip make gcc node ripgrep stow"
+    echo "Installing minimal packages for Neovim:"
+    echo "$packages"
+    for package in $packages; do
+        if brew list | grep -q "^$package\$"; then
+            echo "$package is already installed. Skipping..."
+        else
+            echo "Installing $package..."
+            brew install "$package"
+        fi
+    done
+}
+
 install_packages_macos() {
     # Core packages needed for the dotfiles setup
     packages="go rust node nvim starship bash zsh git tree fzf ack ripgrep gh gum glow stow bat"
@@ -115,7 +130,7 @@ install_packages_macos() {
             fi
         done
     fi
-    
+
     # Additional development tools (optional)
     dev_packages="make gcc unzip curl wget"
     echo "Install additional development tools?"
@@ -176,6 +191,22 @@ install_starship_debian() {
     fi
 }
 
+install_minimal_packages_debian() {
+    # Minimal packages for Neovim config
+    packages="make gcc ripgrep unzip git curl stow nodejs npm"
+    echo "Installing minimal packages for Neovim:"
+    echo "$packages"
+    sudo apt update
+    sudo apt install -y $packages
+
+    # Install Node.js LTS if not already installed
+    if ! command_exists node; then
+        echo "Installing Node.js LTS..."
+        curl -fsSL https://deb.nodesource.com/setup_lts.x | sudo -E bash -
+        sudo apt-get install -y nodejs
+    fi
+}
+
 install_packages_debian() {
     # Core packages
     packages="make gcc ripgrep unzip git curl wget stow nodejs npm python3 python3-pip bat"
@@ -185,7 +216,7 @@ install_packages_debian() {
         sudo apt update
         sudo apt install -y $packages
     fi
-    
+
     # Install Node.js LTS if not already installed
     if ! command_exists node; then
         echo "Installing Node.js LTS..."
@@ -197,6 +228,21 @@ install_packages_debian() {
 #
 # --- windows installs ---
 #
+install_minimal_packages_windows() {
+    # Minimal packages for Neovim config
+    packages="make mingw ripgrep unzip git curl stow nodejs"
+    echo "Installing minimal packages for Neovim:"
+    echo "$packages"
+    for package in $packages; do
+        if choco list --local-only | grep -q "^$package\$"; then
+            echo "$package is already installed. Skipping..."
+        else
+            echo "Installing $package..."
+            choco install "$package" -y
+        fi
+    done
+}
+
 install_packages_windows() {
     packages="make mingw ripgrep unzip git curl stow nodejs python bat"
     echo "Install the following packages with choco?"
@@ -218,11 +264,11 @@ install_packages_windows() {
 #
 setup_neovim() {
     echo "Setting up Neovim..."
-    
+
     # Create necessary directories
     mkdir -p ~/.config/nvim
     mkdir -p ~/docs/vimwiki
-    
+
     echo "Neovim setup complete."
     echo "After stowing configs, run 'nvim' and plugins will auto-install via lazy.nvim"
     echo "Use ':checkhealth' in Neovim to verify everything is working"
@@ -245,32 +291,107 @@ print_next_steps() {
     echo ""
 }
 
+print_minimal_next_steps() {
+    echo ""
+    echo "=== Minimal Installation Complete ==="
+    echo ""
+    echo "Essential packages installed for Neovim configuration:"
+    echo "- Neovim (text editor)"
+    echo "- Git (version control)"
+    echo "- Node.js (for LSP servers)"
+    echo "- Ripgrep (for live grep in FZF)"
+    echo "- Make/GCC (for building plugins)"
+    echo "- Stow (for managing dotfiles)"
+    echo ""
+    echo "Next steps:"
+    echo "1. Run './stow.sh install' to link configuration files"
+    echo "2. Open Neovim with 'nvim' - plugins will auto-install via lazy.nvim"
+    echo "3. In Neovim, run ':checkhealth' to verify setup"
+    echo "4. Run ':Mason' in Neovim to install language servers as needed"
+    echo ""
+    echo "Note: You can run this script again with 'full' option to install additional tools later."
+    echo ""
+}
+
+usage() {
+    echo "Usage: $0 [minimal|full]"
+    echo
+    echo "Options:"
+    echo "  minimal    Install only essential packages for Neovim config"
+    echo "  full       Install all packages and tools (default)"
+    echo
+    echo "The minimal installation includes:"
+    echo "  - Neovim"
+    echo "  - Git"
+    echo "  - Node.js (for LSP servers)"
+    echo "  - Ripgrep (for FZF live grep)"
+    echo "  - Make/GCC (for building plugins)"
+    echo "  - Stow (for managing dotfiles)"
+    echo "  - Curl/Unzip (for downloads)"
+    echo
+    exit 1
+}
+
 #
 # --- Main ---
 #
 main() {
-    echo "Starting dotfiles installation..."
-    
+    local install_type="${1:-full}"
+
+    case "$install_type" in
+    "minimal")
+        echo "Starting minimal dotfiles installation..."
+        ;;
+    "full")
+        echo "Starting full dotfiles installation..."
+        ;;
+    "-h" | "--help" | "help")
+        usage
+        ;;
+    *)
+        echo "Unknown option: $install_type"
+        usage
+        ;;
+    esac
+
     if is_macos; then
         install_xcode_cli
         install_homebrew
-        install_packages_macos
+        if [[ "$install_type" == "minimal" ]]; then
+            install_minimal_packages_macos
+        else
+            install_packages_macos
+            install_apps_macos
+        fi
         install_neovim_macos
-        install_apps_macos
     elif is_windows; then
         install_chocolatey
-        install_packages_windows
+        if [[ "$install_type" == "minimal" ]]; then
+            install_minimal_packages_windows
+        else
+            install_packages_windows
+        fi
     elif is_debian; then
-        install_packages_debian
+        if [[ "$install_type" == "minimal" ]]; then
+            install_minimal_packages_debian
+        else
+            install_packages_debian
+            install_starship_debian
+        fi
         install_neovim_debian
-        install_starship_debian
     else
         echo "Unsupported OS."
         return 1
     fi
-    
+
     setup_neovim
-    print_next_steps
+
+    if [[ "$install_type" == "minimal" ]]; then
+        print_minimal_next_steps
+    else
+        print_next_steps
+    fi
 }
 
 main "$@"
+
