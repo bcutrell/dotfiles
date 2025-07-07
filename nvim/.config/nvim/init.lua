@@ -39,6 +39,29 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
 vim.keymap.set('n', '<leader>tv', '<cmd>vsplit | terminal<CR>', { desc = '[T]erminal [v]ertical split' })
 vim.keymap.set('n', '<leader>tn', '<cmd>tabnew | terminal<CR>', { desc = '[T]erminal [n]ew tab' })
 
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "csv", "tsv" },
+  callback = function()
+    vim.opt_local.wrap = false      -- Don't wrap lines
+    vim.opt_local.scrolloff = 0     -- Allow scrolling to edge
+    vim.opt_local.sidescrolloff = 5 -- Horizontal scroll padding
+    vim.opt_local.sidescroll = 1    -- Smooth horizontal scrolling
+  end,
+})
+
+-- CSV-specific keymaps for csvview.nvim
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = { 'csv', 'tsv' },
+  callback = function()
+    -- Toggle CSV view on/off
+    vim.keymap.set('n', '<leader>cv', ':CsvViewToggle<CR>', { desc = '[C]SV [V]iew toggle', buffer = true })
+    -- Enable CSV view
+    vim.keymap.set('n', '<leader>ce', ':CsvViewEnable<CR>', { desc = '[C]SV [E]nable view', buffer = true })
+    -- Disable CSV view
+    vim.keymap.set('n', '<leader>cd', ':CsvViewDisable<CR>', { desc = '[C]SV [D]isable view', buffer = true })
+  end,
+})
+
 -- Autocommands
 vim.api.nvim_create_autocmd('TextYankPost', {
   desc = 'Highlight when yanking text',
@@ -402,18 +425,18 @@ require('lazy').setup({
     'windwp/nvim-autopairs',
     event = 'InsertEnter',
     config = function()
-      local npairs = require('nvim-autopairs')
-      npairs.setup({
+      local npairs = require 'nvim-autopairs'
+      npairs.setup {
         check_ts = true, -- Enable treesitter integration
         ts_config = {
           lua = { 'string' }, -- Don't add pairs in lua string treesitter nodes
           javascript = { 'template_string' }, -- Don't add pairs in javascript template_string
         },
-      })
+      }
 
       -- Integration with nvim-cmp
-      local cmp_autopairs = require('nvim-autopairs.completion.cmp')
-      local cmp = require('cmp')
+      local cmp_autopairs = require 'nvim-autopairs.completion.cmp'
+      local cmp = require 'cmp'
       cmp.event:on('confirm_done', cmp_autopairs.on_confirm_done())
     end,
   },
@@ -540,6 +563,24 @@ require('lazy').setup({
     config = function()
       require('mini.starter').setup()
     end,
+  },
+
+  -- CSV view
+  {
+    'hat0uma/csvview.nvim',
+    opts = {
+      view = {
+        display_mode = 'border',
+        min_column_width = 3,
+        max_column_width = 15, -- Limit column width to prevent wrapping
+      },
+      parser = { comments = { '#', '//' } },
+      keymaps = {
+        textobject_field_inner = { 'if', mode = { 'o', 'x' } },
+        textobject_field_outer = { 'af', mode = { 'o', 'x' } },
+      },
+    },
+    cmd = { 'CsvViewEnable', 'CsvViewDisable', 'CsvViewToggle' },
   },
 
   -- Git integration with fugitive
