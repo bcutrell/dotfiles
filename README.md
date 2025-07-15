@@ -5,10 +5,11 @@
 1. [Introduction](#introduction)
 2. [Vim](#vim)
 3. [Neovim](#neovim)
-4. [Ripgrep](#ripgrep)
-5. [Fonts](#fonts)
-6. [Shells](#shells)
-7. [Snippets](#snippets)
+4. [Tmux](#tmux)
+5. [Ripgrep](#ripgrep)
+6. [Fonts](#fonts)
+7. [Shells](#shells)
+8. [Snippets](#snippets)
 
 ## Introduction
 
@@ -89,6 +90,38 @@ Configured LSP servers:
 Additional tools installed via Mason:
 - `stylua` (Lua formatter)
 - `shfmt` (Shell script formatter)
+
+## Tmux
+
+This configuration uses `Ctrl-Space` as the prefix key instead of the default `Ctrl-b`.
+
+### Essential Commands
+
+**Session Management:**
+- `tmux new -s <n>` - Create new session with name
+- `tmux ls` - List sessions
+- `tmux attach -t <n>` - Attach to session
+- `tmux kill-session -t <n>` - Kill session
+
+**Window Management:**
+- `Prefix + c` - Create new window
+- `Prefix + ,` - Rename current window
+- `Prefix + n` - Next window
+- `Prefix + p` - Previous window
+- `Prefix + 0-9` - Switch to window by number
+
+**Pane Management:**
+- `Prefix + |` - Split vertically
+- `Prefix + -` - Split horizontally
+- `Alt + Arrow Keys` - Navigate panes (no prefix needed)
+- `Prefix + x` - Close current pane
+- `Prefix + z` - Toggle pane zoom
+
+**Utility:**
+- `Prefix + r` - Reload tmux config
+- `Prefix + M` - Toggle mouse mode
+- `Prefix + [` - Enter copy mode (use vim keys to navigate)
+- `Prefix + d` - Detach from session
 
 ## Fonts
 
