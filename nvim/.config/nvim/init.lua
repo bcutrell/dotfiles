@@ -49,7 +49,7 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
--- CSV-specific keymaps for csvview.nvim
+-- CSV keymaps using csvview.nvim
 vim.api.nvim_create_autocmd('FileType', {
   pattern = { 'csv', 'tsv' },
   callback = function()
@@ -61,6 +61,31 @@ vim.api.nvim_create_autocmd('FileType', {
     vim.keymap.set('n', '<leader>cd', ':CsvViewDisable<CR>', { desc = '[C]SV [D]isable view', buffer = true })
   end,
 })
+
+-- Markdown keymaps using glow
+local function is_markdown_file()
+  local filename = vim.fn.expand('%:p')
+  local extension = vim.fn.expand('%:e'):lower()
+  return extension == 'md' or extension == 'markdown' or extension == 'mdown' or extension == 'mkd'
+end
+
+vim.keymap.set('n', '<leader>mp', function()
+  local current_file = vim.fn.expand('%:p')
+  if is_markdown_file() then
+    vim.cmd('vsplit | terminal glow ' .. vim.fn.shellescape(current_file))
+  else
+    print('Not a markdown file (must end in .md, .markdown, .mdown, or .mkd)')
+  end
+end, { desc = '[M]arkdown [P]review with glow' })
+
+vim.keymap.set('n', '<leader>mt', function()
+  local current_file = vim.fn.expand('%:p')
+  if is_markdown_file() then
+    vim.cmd('tabnew | terminal glow ' .. vim.fn.shellescape(current_file))
+  else
+    print('Not a markdown file (must end in .md, .markdown, .mdown, or .mkd)')
+  end
+end, { desc = '[M]arkdown preview in new [T]ab' })
 
 -- Autocommands
 vim.api.nvim_create_autocmd('TextYankPost', {
