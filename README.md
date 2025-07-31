@@ -152,6 +152,32 @@ The setup includes fzf for fuzzy finding. If you see "bat: command not found" er
    export FZF_DEFAULT_OPTS='--preview "cat {}"'
    ```
 
+### Passwordless SSH
+
+Generate an SSH key pair on your local machine:
+```bash
+ssh-keygen -t rsa -b 4096
+```
+
+Accept the default location (`~/.ssh/id_rsa`) or specify a custom path. Copy the public key to your remote server:
+```bash
+ssh-copy-id user@remote-server
+# or manually: cat ~/.ssh/id_rsa.pub | ssh user@remote-server "mkdir -p ~/.ssh && cat >> ~/.ssh/authorized_keys"
+```
+
+For custom key locations, use:
+```bash
+ssh -i /path/to/custom/key user@remote-server
+```
+
+Or create an SSH config file (`~/.ssh/config`):
+```
+Host myserver
+    HostName remote-server.com
+    User username
+    IdentityFile ~/.ssh/custom_key
+```
+
 ## Snippets
 
 ```shell
