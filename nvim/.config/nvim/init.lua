@@ -39,13 +39,13 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
 vim.keymap.set('n', '<leader>tv', '<cmd>vsplit | terminal<CR>', { desc = '[T]erminal [v]ertical split' })
 vim.keymap.set('n', '<leader>tn', '<cmd>tabnew | terminal<CR>', { desc = '[T]erminal [n]ew tab' })
 
-vim.api.nvim_create_autocmd("FileType", {
-  pattern = { "csv", "tsv" },
+vim.api.nvim_create_autocmd('FileType', {
+  pattern = { 'csv', 'tsv' },
   callback = function()
-    vim.opt_local.wrap = false      -- Don't wrap lines
-    vim.opt_local.scrolloff = 0     -- Allow scrolling to edge
+    vim.opt_local.wrap = false -- Don't wrap lines
+    vim.opt_local.scrolloff = 0 -- Allow scrolling to edge
     vim.opt_local.sidescrolloff = 5 -- Horizontal scroll padding
-    vim.opt_local.sidescroll = 1    -- Smooth horizontal scrolling
+    vim.opt_local.sidescroll = 1 -- Smooth horizontal scrolling
   end,
 })
 
@@ -64,26 +64,26 @@ vim.api.nvim_create_autocmd('FileType', {
 
 -- Markdown keymaps using glow
 local function is_markdown_file()
-  local filename = vim.fn.expand('%:p')
+  local filename = vim.fn.expand '%:p'
   local extension = vim.fn.expand('%:e'):lower()
   return extension == 'md' or extension == 'markdown' or extension == 'mdown' or extension == 'mkd'
 end
 
 vim.keymap.set('n', '<leader>mp', function()
-  local current_file = vim.fn.expand('%:p')
+  local current_file = vim.fn.expand '%:p'
   if is_markdown_file() then
     vim.cmd('vsplit | terminal glow ' .. vim.fn.shellescape(current_file))
   else
-    print('Not a markdown file (must end in .md, .markdown, .mdown, or .mkd)')
+    print 'Not a markdown file (must end in .md, .markdown, .mdown, or .mkd)'
   end
 end, { desc = '[M]arkdown [P]review with glow' })
 
 vim.keymap.set('n', '<leader>mt', function()
-  local current_file = vim.fn.expand('%:p')
+  local current_file = vim.fn.expand '%:p'
   if is_markdown_file() then
     vim.cmd('tabnew | terminal glow ' .. vim.fn.shellescape(current_file))
   else
-    print('Not a markdown file (must end in .md, .markdown, .mdown, or .mkd)')
+    print 'Not a markdown file (must end in .md, .markdown, .mdown, or .mkd)'
   end
 end, { desc = '[M]arkdown preview in new [T]ab' })
 
@@ -522,6 +522,45 @@ require('lazy').setup({
     config = function()
       require('oil').setup()
       vim.keymap.set('n', '-', '<CMD>Oil<CR>', { desc = 'Open parent directory' })
+    end,
+  },
+
+  -- Tree file explorer
+  {
+    'nvim-tree/nvim-tree.lua',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    config = function()
+      require('nvim-tree').setup {
+        disable_netrw = true,
+        hijack_netrw = true,
+        view = {
+          width = 30,
+          side = 'left',
+        },
+        renderer = {
+          group_empty = true,
+          icons = {
+            show = {
+              file = true,
+              folder = true,
+              folder_arrow = true,
+              git = true,
+            },
+          },
+        },
+        filters = {
+          dotfiles = false,
+        },
+        git = {
+          enable = true,
+          ignore = false,
+        },
+      }
+
+      -- Keybindings
+      vim.keymap.set('n', '<leader>e', '<cmd>NvimTreeToggle<CR>', { desc = 'Toggle file [E]xplorer' })
+      vim.keymap.set('n', '<leader>ef', '<cmd>NvimTreeFocus<CR>', { desc = '[E]xplorer [F]ocus' })
+      vim.keymap.set('n', '<leader>er', '<cmd>NvimTreeRefresh<CR>', { desc = '[E]xplorer [R]efresh' })
     end,
   },
 
