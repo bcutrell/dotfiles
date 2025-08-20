@@ -87,6 +87,65 @@ vim.keymap.set('n', '<leader>mt', function()
   end
 end, { desc = '[M]arkdown preview in new [T]ab' })
 
+-- Mark system using <leader>x to set marks and <leader>z to jump to marks
+--
+-- Usage example:
+--   1. On a function you want to remember: press <leader>x0
+--   2. Navigate around your codebase doing other work
+--   3. Want to get back to that function: press <leader>z0
+--   4. Need to see what marks you have set: press <leader>xl
+--
+-- Notes:
+--   - Marks persist within your session and work across files
+--   - Use capital letters (A-Z) for marks that persist across Neovim sessions
+--   - Numbers 0-9 give you 10 quick bookmarks per session
+-- Set marks with <leader>x{0-9}
+for i = 0, 9 do
+  vim.keymap.set('n', string.format('<leader>x%d', i), function()
+    vim.cmd(string.format('mark %d', i))
+    print(string.format('Set mark %d at line %d in %s', i, vim.fn.line '.', vim.fn.expand '%:t'))
+  end, { desc = string.format('Set mark %d', i) })
+end
+
+-- Jump to marks with <leader>z{0-5}
+for i = 0, 5 do
+  vim.keymap.set('n', string.format('<leader>z%d', i), function()
+    local mark_line = vim.fn.line(string.format("'%d", i))
+    if mark_line == 0 then
+      print(string.format('Mark %d not set', i))
+    else
+      vim.cmd(string.format("normal! '%d", i))
+      print(string.format('Jumped to mark %d (line %d)', i, mark_line))
+    end
+  end, { desc = string.format('Jump to mark %d', i) })
+end
+
+-- Additional mark management keybindings
+vim.keymap.set('n', '<leader>xl', '<cmd>marks<CR>', { desc = 'List all marks' })
+
+vim.keymap.set('n', '<leader>xc', function()
+  vim.cmd 'delmarks 0-9'
+  print 'Cleared all numbered marks (0-9)'
+end, { desc = 'Clear numbered marks' })
+
+vim.keymap.set('n', '<leader>xd', function()
+  local mark = vim.fn.input 'Delete mark: '
+  if mark ~= '' then
+    vim.cmd('delmarks ' .. mark)
+    print(string.format('Deleted mark %s', mark))
+  end
+end, { desc = 'Delete specific mark' })
+
+-- Quick access to commonly used marks
+vim.keymap.set('n', '<leader>xx', '<cmd>mark x<CR>', { desc = 'Set mark x (quick mark)' })
+vim.keymap.set('n', '<leader>zx', "<cmd>normal! 'x<CR>", { desc = 'Jump to mark x' })
+
+-- Jump to last edit position
+vim.keymap.set('n', '<leader>z.', "<cmd>normal! '.<CR>", { desc = 'Jump to last edit' })
+
+-- Jump to last jump position
+vim.keymap.set('n', '<leader>z,', "<cmd>normal! ''<CR>", { desc = 'Jump to last position' })
+
 -- Autocommands
 vim.api.nvim_create_autocmd('TextYankPost', {
   desc = 'Highlight when yanking text',
@@ -330,6 +389,21 @@ require('lazy').setup({
       local servers = {
         clangd = { filetypes = { 'cpp' } },
         pyright = { filetypes = { 'python' } },
+        -- more options...
+        -- pyright = {
+        --   filetypes = { 'python' },
+        --   settings = {
+        --     python = {
+        --       analysis = {
+        --         diagnosticMode = 'off',
+        --         typeCheckingMode = 'off',
+        --       },
+        --     },
+        --   },
+        --   handlers = {
+        --     ['textDocument/publishDiagnostics'] = function() end,
+        --   },
+        -- },
         gopls = { filetypes = { 'go' } },
         rust_analyzer = { filetypes = { 'rs' } },
         lua_ls = {
