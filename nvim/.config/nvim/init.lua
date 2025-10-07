@@ -731,44 +731,29 @@ require('lazy').setup({
     'tpope/vim-fugitive',
     config = function()
       vim.keymap.set('n', '<leader>gg', '<cmd>Git<cr>', { desc = '[G]it status' })
-      vim.keymap.set('n', '<leader>gv', '<cmd>Gvdiffsplit<cr>', { desc = '[G]it [v]ertical diff split' })
-      vim.keymap.set('n', '<leader>gd', '<cmd>vertical Git diff<cr>', { desc = '[G]it [D]iff' })
+      vim.keymap.set('n', '<leader>gs', '<cmd>Gvdiffsplit<cr>', { desc = '[G]it [s]plit diff' })
+      vim.keymap.set('n', '<leader>gv', '<cmd>vertical Git diff<cr>', { desc = '[G]it [v]ertical diff' })
       vim.keymap.set('n', '<leader>gb', '<cmd>Git blame<cr>', { desc = '[G]it [B]lame' })
       vim.keymap.set('n', '<leader>gl', '<cmd>Git log --oneline<cr>', { desc = '[G]it [L]og' })
       vim.keymap.set('n', '<leader>gc', '<cmd>Git commit<cr>', { desc = '[G]it [C]ommit' })
     end,
   },
+
   -- Diffview for better git diffs
   {
     'sindrets/diffview.nvim',
     dependencies = { 'nvim-tree/nvim-web-devicons' },
     config = function()
       require('diffview').setup {
-        enhanced_diff_hl = true, -- Better syntax highlighting in diffs
-        use_icons = vim.g.have_nerd_font, -- Use icons if you have nerd fonts
+        enhanced_diff_hl = true,
+        use_icons = vim.g.have_nerd_font,
         view = {
           default = {
             layout = 'diff2_horizontal',
-            winbar_info = true,
-          },
-          merge_tool = {
-            layout = 'diff3_mixed',
-            disable_diagnostics = true,
-          },
-          file_history = {
-            layout = 'diff2_horizontal',
-            winbar_info = true,
           },
         },
         file_panel = {
           listing_style = 'tree',
-          tree_options = {
-            flatten_dirs = true,
-            folder_statuses = 'only_folded',
-          },
-        },
-        key_bindings = {
-          disable_defaults = false, -- Keep default keybindings
         },
       }
 
@@ -778,11 +763,8 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>gdh', '<cmd>DiffviewFileHistory %<cr>', { desc = '[G]it [D]iff [H]istory (current file)' })
       vim.keymap.set('n', '<leader>gda', '<cmd>DiffviewFileHistory<cr>', { desc = '[G]it [D]iff [A]ll files history' })
       vim.keymap.set('n', '<leader>gdr', '<cmd>DiffviewRefresh<cr>', { desc = '[G]it [D]iff [R]efresh' })
-
-      -- Quick shortcuts for common diff operations
-      vim.keymap.set('n', '<leader>gd1', '<cmd>DiffviewOpen HEAD~1<cr>', { desc = 'Diff with 1 commit ago' })
-      vim.keymap.set('n', '<leader>gd2', '<cmd>DiffviewOpen HEAD~2<cr>', { desc = 'Diff with 2 commits ago' })
-      vim.keymap.set('n', '<leader>gd3', '<cmd>DiffviewOpen HEAD~3<cr>', { desc = 'Diff with 3 commits ago' })
+      vim.keymap.set('n', '<leader>gds', '<cmd>DiffviewOpen --staged<cr>', { desc = 'Git Staged' })
+      vim.keymap.set('n', '<leader>gdd', '<cmd>DiffviewOpen<cr>', { desc = 'Git Diff (uncommitted)' })
 
       -- Compare branches
       vim.keymap.set('n', '<leader>gdb', function()
