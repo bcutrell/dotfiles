@@ -738,45 +738,17 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>gc', '<cmd>Git commit<cr>', { desc = '[G]it [C]ommit' })
     end,
   },
-
-  -- Diffview for better git diffs
+  -- Diffview for git diffs
   {
     'sindrets/diffview.nvim',
-    dependencies = { 'nvim-tree/nvim-web-devicons' },
     config = function()
       require('diffview').setup {
         enhanced_diff_hl = true,
         use_icons = vim.g.have_nerd_font,
-        view = {
-          default = {
-            layout = 'diff2_horizontal',
-          },
-        },
-        file_panel = {
-          listing_style = 'tree',
-        },
       }
-
-      -- Keymaps - using 'gd' prefix for git diff operations
-      vim.keymap.set('n', '<leader>gdo', '<cmd>DiffviewOpen<cr>', { desc = '[G]it [D]iff [O]pen' })
-      vim.keymap.set('n', '<leader>gdc', '<cmd>DiffviewClose<cr>', { desc = '[G]it [D]iff [C]lose' })
-      vim.keymap.set('n', '<leader>gdh', '<cmd>DiffviewFileHistory %<cr>', { desc = '[G]it [D]iff [H]istory (current file)' })
-      vim.keymap.set('n', '<leader>gda', '<cmd>DiffviewFileHistory<cr>', { desc = '[G]it [D]iff [A]ll files history' })
-      vim.keymap.set('n', '<leader>gdr', '<cmd>DiffviewRefresh<cr>', { desc = '[G]it [D]iff [R]efresh' })
-      vim.keymap.set('n', '<leader>gds', '<cmd>DiffviewOpen --staged<cr>', { desc = 'Git Staged' })
-      vim.keymap.set('n', '<leader>gdd', '<cmd>DiffviewOpen<cr>', { desc = 'Git Diff (uncommitted)' })
-
-      -- Compare branches
-      vim.keymap.set('n', '<leader>gdb', function()
-        vim.ui.input({ prompt = 'Branch to compare with HEAD: ' }, function(branch)
-          if branch then
-            vim.cmd('DiffviewOpen ' .. branch .. '..HEAD')
-          end
-        end)
-      end, { desc = '[G]it [D]iff [B]ranch' })
-
-      -- Visual mode - diff selected lines history
-      vim.keymap.set('v', '<leader>gdh', ":'<,'>DiffviewFileHistory<cr>", { desc = 'History of selected lines' })
+      vim.keymap.set('n', '<leader>gd', '<cmd>DiffviewOpen HEAD<cr>', { desc = '[G]it [D]iff (staged only)' })
+      vim.keymap.set('n', '<leader>gh', '<cmd>DiffviewFileHistory %<cr>', { desc = '[G]it [H]istory (current file)' })
+      vim.keymap.set('n', '<leader>gx', '<cmd>DiffviewClose<cr>', { desc = '[G]it diff [C]lose' })
     end,
   },
 }, {
