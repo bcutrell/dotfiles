@@ -770,3 +770,10 @@ require('lazy').setup({
     },
   },
 })
+
+-- Set highlights AFTER colorscheme
+vim.api.nvim_set_hl(0, 'DiffText', {
+  bg = '#7a4a2a',  -- Burnt orange
+  fg = '#ffffff',
+  bold = true,
+})
