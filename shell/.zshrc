@@ -49,3 +49,7 @@ source "$HOME/.rye/env"
 # startship
 # uncomment to use starship 
 eval "$(starship init zsh)"
+
+fpath+=~/.zfunc; autoload -Uz compinit; compinit
+
+zstyle ':completion:*' menu select

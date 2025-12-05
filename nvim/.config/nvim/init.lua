@@ -31,6 +31,8 @@ end)
 -- Keymaps
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic quickfix list' })
+vim.keymap.set('n', '[d', vim.diagnostic.goto_prev, { desc = 'Previous diagnostic' })
+vim.keymap.set('n', ']d', vim.diagnostic.goto_next, { desc = 'Next diagnostic' })
 vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
@@ -38,6 +40,8 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
 
 vim.keymap.set('n', '<leader>tv', '<cmd>vsplit | terminal<CR>', { desc = '[T]erminal [v]ertical split' })
 vim.keymap.set('n', '<leader>tn', '<cmd>tabnew | terminal<CR>', { desc = '[T]erminal [n]ew tab' })
+vim.keymap.set('n', '<leader>tt', '<cmd>tabnew<CR>', { desc = 'New [T]ab' })
+vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
 vim.api.nvim_create_autocmd('FileType', {
   pattern = { 'csv', 'tsv' },
@@ -199,6 +203,20 @@ require('lazy').setup({
         topdelete = { text = '‾' },
         changedelete = { text = '~' },
       },
+      on_attach = function(bufnr)
+        local gs = require 'gitsigns'
+        local map = function(mode, l, r, desc)
+          vim.keymap.set(mode, l, r, { buffer = bufnr, desc = desc })
+        end
+        -- Navigation
+        map('n', ']h', gs.next_hunk, 'Next hunk')
+        map('n', '[h', gs.prev_hunk, 'Previous hunk')
+        -- Actions
+        map('n', '<leader>gp', gs.preview_hunk, '[G]it [P]review hunk')
+        map('n', '<leader>gr', gs.reset_hunk, '[G]it [R]eset hunk')
+        map('n', '<leader>gS', gs.stage_hunk, '[G]it [S]tage hunk')
+        map('n', '<leader>gu', gs.undo_stage_hunk, '[G]it [U]ndo stage hunk')
+      end,
     },
   },
 
@@ -247,10 +265,9 @@ require('lazy').setup({
         { '<leader>r', group = '[R]ename' },
         { '<leader>s', group = '[S]earch' },
         { '<leader>w', group = '[W]orkspace' },
-        { '<leader>t', group = '[T]oggle' },
         { '<leader>h', group = '[H]arpoon', mode = { 'n', 'v' } },
         { '<leader>g', group = '[G]it' },
-        { '<leader>t', group = '[T]erminal' },
+        { '<leader>t', group = '[T]erminal/[T]oggle' },
       },
     },
   },
@@ -388,24 +405,18 @@ require('lazy').setup({
 
       local servers = {
         clangd = { filetypes = { 'cpp' } },
-        pyright = { filetypes = { 'python' } },
-        -- more options...
-        -- pyright = {
-        --   filetypes = { 'python' },
-        --   settings = {
-        --     python = {
-        --       analysis = {
-        --         diagnosticMode = 'off',
-        --         typeCheckingMode = 'off',
-        --       },
-        --     },
-        --   },
-        --   handlers = {
-        --     ['textDocument/publishDiagnostics'] = function() end,
-        --   },
-        -- },
+        pyright = {
+          settings = {
+            python = {
+              analysis = {
+                diagnosticMode = 'off',
+                typeCheckingMode = 'off',
+              },
+            },
+          },
+        },
         gopls = { filetypes = { 'go' } },
-        rust_analyzer = { filetypes = { 'rs' } },
+        rust_analyzer = { filetypes = { 'rust' } },
         lua_ls = {
           settings = {
             Lua = {
@@ -731,8 +742,6 @@ require('lazy').setup({
     'tpope/vim-fugitive',
     config = function()
       vim.keymap.set('n', '<leader>gg', '<cmd>Git<cr>', { desc = '[G]it status' })
-      vim.keymap.set('n', '<leader>gs', '<cmd>Gvdiffsplit<cr>', { desc = '[G]it [s]plit diff' })
-      vim.keymap.set('n', '<leader>gv', '<cmd>vertical Git diff<cr>', { desc = '[G]it [v]ertical diff' })
       vim.keymap.set('n', '<leader>gb', '<cmd>Git blame<cr>', { desc = '[G]it [B]lame' })
       vim.keymap.set('n', '<leader>gl', '<cmd>Git log --oneline<cr>', { desc = '[G]it [L]og' })
       vim.keymap.set('n', '<leader>gc', '<cmd>Git commit<cr>', { desc = '[G]it [C]ommit' })
@@ -746,9 +755,20 @@ require('lazy').setup({
         enhanced_diff_hl = true,
         use_icons = vim.g.have_nerd_font,
       }
-      vim.keymap.set('n', '<leader>gd', '<cmd>DiffviewOpen HEAD<cr>', { desc = '[G]it [D]iff (staged only)' })
+      -- Current file diffs
+      vim.keymap.set('n', '<leader>gd', '<cmd>DiffviewOpen HEAD<cr>', { desc = '[G]it [D]iff staged' })
+      vim.keymap.set('n', '<leader>gf', '<cmd>DiffviewOpen -- %<cr>', { desc = '[G]it diff [F]ile' })
+      vim.keymap.set('n', '<leader>gL', '<cmd>DiffviewOpen HEAD~1 -- %<cr>', { desc = '[G]it diff [L]ast commit' })
       vim.keymap.set('n', '<leader>gh', '<cmd>DiffviewFileHistory %<cr>', { desc = '[G]it [H]istory (current file)' })
-      vim.keymap.set('n', '<leader>gx', '<cmd>DiffviewClose<cr>', { desc = '[G]it diff [C]lose' })
+      vim.keymap.set('n', '<leader>gx', '<cmd>DiffviewClose<cr>', { desc = '[G]it diff e[X]it' })
+
+      -- Diff against a branch (prompts for input)
+      vim.keymap.set('n', '<leader>gB', function()
+        local branch = vim.fn.input('Diff against branch: ')
+        if branch ~= '' then
+          vim.cmd('DiffviewOpen ' .. branch .. ' -- %')
+        end
+      end, { desc = '[G]it diff [B]ranch' })
     end,
   },
 }, {
@@ -769,11 +789,4 @@ require('lazy').setup({
       lazy = '💤 ',
     },
   },
-})
-
--- Set highlights AFTER colorscheme
-vim.api.nvim_set_hl(0, 'DiffText', {
-  bg = '#7a4a2a',  -- Burnt orange
-  fg = '#ffffff',
-  bold = true,
 })

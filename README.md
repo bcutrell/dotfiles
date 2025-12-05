@@ -205,4 +205,7 @@ $ defaults write com.microsoft.VSCode ApplePressAndHoldEnabled -bool false
 $ nvim +Lazy                    # open lazy.nvim interface
 $ nvim +Mason                   # open mason interface for LSPs
 $ nvim +checkhealth             # check neovim health
+
+# fix clipboard on debian
+$ sudo apt install xclip
 ```
