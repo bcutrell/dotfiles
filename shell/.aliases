@@ -16,6 +16,7 @@ alias gb="git branch"
 alias gl="git log"
 alias gitapplyplz="git apply --ignore-space-change --ignore-whitespace"
 alias gc="git commit"
+alias gbds="git for-each-ref --sort=-committerdate --format='%(committerdate:short) %(refname:short)' refs/heads/"
 
 # utility
 alias findlarge='function _findlarge() { find "${1:-.}" -type f -print0 | xargs -0 du -sh | sort -rh | head -n "${2:-10}"; }; _findlarge'
