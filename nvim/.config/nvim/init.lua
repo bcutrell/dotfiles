@@ -615,45 +615,6 @@ require('lazy').setup({
     end,
   },
 
-  -- Tree file explorer
-  {
-    'nvim-tree/nvim-tree.lua',
-    dependencies = { 'nvim-tree/nvim-web-devicons' },
-    config = function()
-      require('nvim-tree').setup {
-        disable_netrw = true,
-        hijack_netrw = true,
-        view = {
-          width = 30,
-          side = 'left',
-        },
-        renderer = {
-          group_empty = true,
-          icons = {
-            show = {
-              file = true,
-              folder = true,
-              folder_arrow = true,
-              git = true,
-            },
-          },
-        },
-        filters = {
-          dotfiles = false,
-        },
-        git = {
-          enable = true,
-          ignore = false,
-        },
-      }
-
-      -- Keybindings
-      vim.keymap.set('n', '<leader>e', '<cmd>NvimTreeToggle<CR>', { desc = 'Toggle file [E]xplorer' })
-      vim.keymap.set('n', '<leader>ef', '<cmd>NvimTreeFocus<CR>', { desc = '[E]xplorer [F]ocus' })
-      vim.keymap.set('n', '<leader>er', '<cmd>NvimTreeRefresh<CR>', { desc = '[E]xplorer [R]efresh' })
-    end,
-  },
-
   -- Harpoon
   {
     'ThePrimeagen/harpoon',
