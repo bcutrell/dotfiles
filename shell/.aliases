@@ -2,10 +2,14 @@
 # Alias
 #
 alias restart_shell="exec $SHELL"
-alias ls='ls --color=auto'
 alias c="clear"
 alias search="rg -S --no-ignore"
 alias nvim_config="nvim ~/.config/nvim/init.lua"
+
+# Directory navigation
+alias ..="cd .."
+alias ...="cd ../.."
+alias ....="cd ../../.."
 
 # git
 alias gs="git status"

@@ -7,3 +7,18 @@
 
 [credential]
 	helper = osxkeychain
+
+[init]
+	defaultBranch = main
+
+[pull]
+	rebase = true
+
+[push]
+	autoSetupRemote = true
+
+[rebase]
+	autoStash = true
+
+[alias]
+	lg = log --oneline --graph --decorate --all
