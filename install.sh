@@ -102,7 +102,7 @@ install_neovim_macos() {
 
 install_minimal_packages_macos() {
     # Minimal packages for Neovim config
-    packages="nvim git curl unzip make gcc node ripgrep stow"
+    packages="neovim git curl unzip make gcc node ripgrep stow"
     echo "Installing minimal packages for Neovim:"
     echo "$packages"
     for package in $packages; do
@@ -207,6 +207,15 @@ install_minimal_packages_debian() {
     fi
 }
 
+install_light_packages_debian() {
+    # Ultra-minimal: just vim + git + stow, no LSP, no Node
+    packages="git curl stow vim"
+    echo "Installing light packages (no Node/LSP):"
+    echo "$packages"
+    sudo apt update
+    sudo apt install -y $packages
+}
+
 install_packages_debian() {
     # Core packages
     packages="make gcc ripgrep unzip git curl wget stow nodejs npm python3 python3-pip bat"
@@ -291,6 +300,16 @@ print_next_steps() {
     echo ""
 }
 
+print_light_next_steps() {
+    echo ""
+    echo "=== Light Installation Complete ==="
+    echo ""
+    echo "Next steps:"
+    echo "1. Run './stow.sh install --minimal' to link git + shell + vim-light"
+    echo "2. Restart your shell (bash will be used)"
+    echo ""
+}
+
 print_minimal_next_steps() {
     echo ""
     echo "=== Minimal Installation Complete ==="
@@ -314,20 +333,13 @@ print_minimal_next_steps() {
 }
 
 usage() {
-    echo "Usage: $0 [minimal|full]"
+    echo "Usage: $0 [light|minimal|full]"
     echo
     echo "Options:"
-    echo "  minimal    Install only essential packages for Neovim config"
+    echo "  light      Ultra-minimal: git, curl, stow, vim only (no Node, no Neovim)"
+    echo "             Use with: ./stow.sh install --minimal"
+    echo "  minimal    Essential packages for Neovim config (includes Node for LSP)"
     echo "  full       Install all packages and tools (default)"
-    echo
-    echo "The minimal installation includes:"
-    echo "  - Neovim"
-    echo "  - Git"
-    echo "  - Node.js (for LSP servers)"
-    echo "  - Ripgrep (for FZF live grep)"
-    echo "  - Make/GCC (for building plugins)"
-    echo "  - Stow (for managing dotfiles)"
-    echo "  - Curl/Unzip (for downloads)"
     echo
     exit 1
 }
@@ -339,6 +351,9 @@ main() {
     local install_type="${1:-full}"
 
     case "$install_type" in
+    "light")
+        echo "Starting light (ultra-minimal) dotfiles installation..."
+        ;;
     "minimal")
         echo "Starting minimal dotfiles installation..."
         ;;
@@ -357,7 +372,7 @@ main() {
     if is_macos; then
         install_xcode_cli
         install_homebrew
-        if [[ "$install_type" == "minimal" ]]; then
+        if [[ "$install_type" == "minimal" || "$install_type" == "light" ]]; then
             install_minimal_packages_macos
         else
             install_packages_macos
@@ -366,13 +381,17 @@ main() {
         install_neovim_macos
     elif is_windows; then
         install_chocolatey
-        if [[ "$install_type" == "minimal" ]]; then
+        if [[ "$install_type" == "minimal" || "$install_type" == "light" ]]; then
             install_minimal_packages_windows
         else
             install_packages_windows
         fi
     elif is_debian; then
-        if [[ "$install_type" == "minimal" ]]; then
+        if [[ "$install_type" == "light" ]]; then
+            install_light_packages_debian
+            print_light_next_steps
+            return 0
+        elif [[ "$install_type" == "minimal" ]]; then
             install_minimal_packages_debian
         else
             install_packages_debian
