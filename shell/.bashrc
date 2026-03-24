@@ -3,7 +3,7 @@ export LANG=en_US.UTF-8
 export LC_ALL=en_US.UTF-8
 
 # User configuration
-export EDITOR='nvim'
+export EDITOR='vim'
 export SHELL="bash"
 
 # Aliases
@@ -42,10 +42,14 @@ fi
 # uncomment to use ipdb
 # export PYTHONBREAKPOINT=ipdb.set_trace
 
-# rye
-# uncomment to use rye
-# source "$HOME/.rye/env"
+# History
+export HISTFILE=~/.bash_history
+export HISTSIZE=100000
+export HISTFILESIZE=100000
+export HISTCONTROL=ignoreboth:erasedups
+shopt -s histappend
+PROMPT_COMMAND="${PROMPT_COMMAND:+$PROMPT_COMMAND$'\n'}history -a"
 
-# startship
-# uncomment to use starship 
-# eval "$(starship init zsh)"
+# PATH additions
+export PATH="$HOME/.local/bin:$PATH"
+export PATH="$PATH:$HOME/go/bin"

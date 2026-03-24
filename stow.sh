@@ -8,6 +8,13 @@ PACKAGES=(
     "nvim"
     "shell"
     "vim"
+    "tmux"
+)
+
+MINIMAL_PACKAGES=(
+    "git"
+    "shell"
+    "vim-light"
 )
 
 check_stow() {
@@ -38,8 +45,9 @@ backup_configs() {
 stow_packages() {
     local action=$1
     local dry_run=$2
+    local minimal=$3
     local stow_flags=""
-    
+
     case "$action" in
         "install")
             if [ "$dry_run" = "true" ]; then
@@ -62,8 +70,14 @@ stow_packages() {
             exit 1
             ;;
     esac
-    
-    for package in "${PACKAGES[@]}"; do
+
+    local packages=("${PACKAGES[@]}")
+    if [ "$minimal" = "true" ]; then
+        packages=("${MINIMAL_PACKAGES[@]}")
+        echo "Using minimal package set: ${packages[*]}"
+    fi
+
+    for package in "${packages[@]}"; do
         echo "Processing package: $package"
         stow $stow_flags "$HOME" "$package"
     done
@@ -77,7 +91,7 @@ list_packages() {
 }
 
 usage() {
-    echo "Usage: $0 [install|remove|list] [--dry-run]"
+    echo "Usage: $0 [install|remove|list] [--dry-run] [--minimal]"
     echo
     echo "Commands:"
     echo "  install    Install (stow) all packages"
@@ -86,30 +100,40 @@ usage() {
     echo
     echo "Options:"
     echo "  --dry-run  Show what would be done without making changes"
+    echo "  --minimal  Use minimal package set (git, shell, vim-light)"
+    echo "             Also creates ~/.minimal to suppress heavy shell tools"
     exit 1
 }
 
 main() {
     local command=$1
     local dry_run=false
-    
+    local minimal=false
+
     [ $# -eq 0 ] && usage
-    
-    if [ "$2" = "--dry-run" ]; then
-        dry_run=true
-    fi
-    
+
+    for arg in "${@:2}"; do
+        case "$arg" in
+            "--dry-run") dry_run=true ;;
+            "--minimal") minimal=true ;;
+        esac
+    done
+
     case "$command" in
         "install")
             check_stow
             if [ "$dry_run" = "false" ]; then
                 backup_configs
+                if [ "$minimal" = "true" ] && [ ! -f ~/.minimal ]; then
+                    touch ~/.minimal
+                    echo "Created ~/.minimal marker"
+                fi
             fi
-            stow_packages "install" "$dry_run"
+            stow_packages "install" "$dry_run" "$minimal"
             ;;
         "remove")
             check_stow
-            stow_packages "remove" "$dry_run"
+            stow_packages "remove" "$dry_run" "$minimal"
             ;;
         "list")
             list_packages
