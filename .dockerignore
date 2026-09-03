@@ -1,0 +1,6 @@
+.git
+*.diff
+*.log
+README.md
+TEST_PLAN.md
+LICENSE

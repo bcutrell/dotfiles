@@ -2,57 +2,111 @@
 
 ## Table of Contents
 
-1. [Introduction](#introduction)
+1. [Introduction](#introduction) - quick start, tiers, cleanup
 2. [Vim](#vim)
 3. [Neovim](#neovim)
 4. [Tmux](#tmux)
-5. [Ripgrep](#ripgrep)
+5. [Clipboard](#clipboard)
 6. [Fonts](#fonts)
 7. [Shells](#shells)
 8. [Snippets](#snippets)
 
 ## Introduction
 
-This repository includes two main scripts for setup:
-- `install.sh`: Installs all required packages and tools
-- `stow.sh`: Manages dotfile symlinks
+This repository includes two main scripts:
+- `setup.sh`: installs packages and links dotfiles
+- `clean.sh`: removes symlinks, clears caches, uninstalls Homebrew
 
-### Package Installation
-
-Run `install.sh` to install required packages (Homebrew, Neovim, Ripgrep, etc.):
-```bash
-./install.sh
-```
-
-### Stow
-
-The `stow.sh` script manages all dotfile symlinks. Available commands:
+### Quick Start
 
 ```bash
-# List available packages
-./stow.sh list
-
-# Preview what would happen during install (dry-run)
-./stow.sh install --dry-run
-
-# Install all dotfiles
-./stow.sh install
-
-# Remove all symlinks
-./stow.sh remove
-
-# Preview removal
-./stow.sh remove --dry-run
+git clone https://github.com/bcutrell/dotfiles.git ~/dotfiles
+cd ~/dotfiles
+sh setup.sh
 ```
 
-### Manual Stow Usage (if needed)
+Same on macOS and Debian/Ubuntu. `setup.sh` is POSIX `sh` and needs no
+dependencies of its own, not even GNU Stow.
 
-For manual stow operations, you can use these commands:
-- `stow <packagename>`: activates symlink
-- `stow -n <packagename>`: trial runs or simulates symlink generation
-- `stow -D <packagename>`: delete stowed package
-- `stow -R <packagename>`: restows package
-- `stow --adopt <packagename>`: adopts existing files into the stow directory
+### Starting Fresh
+
+To replace an existing setup, including the older stow-based one:
+
+```bash
+# 1. remove the old symlinks and restore whatever they replaced
+cd ~/dotfiles && sh clean.sh unlink
+
+# 2. delete the old checkout
+cd ~ && rm -rf ~/dotfiles
+
+# 3. clone and set up
+git clone https://github.com/bcutrell/dotfiles.git ~/dotfiles
+cd ~/dotfiles && sh setup.sh
+```
+
+Skip step 1 if the old checkout is already gone: `setup.sh` backs up anything
+it finds at a target path anyway.
+
+### Setup Options
+
+```bash
+sh setup.sh              # asks which tier
+sh setup.sh --minimal    # weak box: git, curl, tmux, plugin-free vim
+sh setup.sh --full       # workstation: adds Neovim + LSP, Node, fzf, ripgrep, starship
+sh setup.sh --link-only  # symlinks only, install nothing
+sh setup.sh --yes        # no prompts, take every default
+sh setup.sh --check      # report OS, tools and link status; changes nothing
+```
+
+Re-running is safe. Switching tiers is just re-running with the other flag;
+`~/.vimrc` swaps between the plugin-free and full configs automatically.
+
+### What Gets Linked
+
+`setup.sh` links only what `manifest()` in `lib.sh` names. Anything already at a
+target path moves to `~/.dotfiles_backup/<timestamp>/` first.
+
+| Repo | Links to | Tier |
+|------|----------|------|
+| `shell/.zshrc`, `.bashrc`, `.aliases` | `~/` | both |
+| `git/.gitconfig`, `.gitignore_global` | `~/` | both |
+| `tmux/.tmux.conf` | `~/.tmux.conf` | both |
+| `vim-light/.vimrc` | `~/.vimrc` | minimal |
+| `vim/.vimrc` | `~/.vimrc` | full |
+| `nvim/.config/nvim` | `~/.config/nvim` | full |
+| `config/.config/starship.toml` | `~/.config/starship.toml` | full |
+
+Git identity and the credential helper go in `~/.gitconfig.local`, which
+`.gitconfig` includes and git ignores. That keeps the tracked `.gitconfig`
+portable across macOS and Linux.
+
+### Cleanup
+
+```bash
+sh clean.sh doctor    # what is installed and linked
+sh clean.sh cache     # remove build/tool caches (asks per item)
+sh clean.sh brew      # uninstall Linuxbrew/Homebrew, strip brew shellenv
+sh clean.sh unlink    # remove symlinks, restore newest backup
+sh clean.sh all       # cache, then unlink
+```
+
+`cache` covers what actually fills a small VM: pip, npm, Homebrew, Go, Neovim
+plugins and LSP servers, apt, the shell init caches, and old backups. It always
+keeps the newest backup.
+
+### Testing
+
+Linux paths are tested in containers. Requires Docker:
+
+```bash
+./docker-test.sh build      # build debian + ubuntu images
+./docker-test.sh test       # syntax, minimal install, clean shells, unlink
+./docker-test.sh test-full  # full install
+./docker-test.sh test-nvim  # headless Neovim config load
+./docker-test.sh cleanup    # remove images
+```
+
+See `TEST_PLAN.md`.
 
 ## Vim
 
@@ -64,6 +118,7 @@ For manual stow operations, you can use these commands:
 - Uses [lazy.nvim](https://github.com/folke/lazy.nvim) as the plugin manager
 - Includes LSP support via Mason for automatic language server installation
 - Custom plugins include:
+  - [fzf-lua](https://github.com/ibhagwan/fzf-lua) for finding files and grepping
   - [Harpoon](https://github.com/ThePrimeagen/harpoon) for file navigation
   - [Oil.nvim](https://github.com/stevearc/oil.nvim) for file management
   - [VimWiki](https://github.com/vimwiki/vimwiki) for note-taking
@@ -76,7 +131,7 @@ The configuration requires:
 - A C compiler (for some plugin builds)
 - Node.js (for some LSP servers)
 - Python 3 (for some LSP servers)
-- Ripgrep (for Telescope live grep)
+- Ripgrep (for fzf-lua live grep)
 
 ### Language Server Support
 
@@ -86,14 +141,18 @@ Configured LSP servers:
 - `pyright` (Python)
 - `gopls` (Go)
 - `rust_analyzer` (Rust)
+- `ts_ls` (JavaScript/TypeScript)
 
 Additional tools installed via Mason:
 - `stylua` (Lua formatter)
-- `shfmt` (Shell script formatter)
+- `prettier` (JS/TS/JSON/Markdown formatter)
+
+Formatting runs through [conform.nvim](https://github.com/stevearc/conform.nvim),
+which also uses `shfmt` for shell if installed.
 
 ## Tmux
 
-This configuration uses `Ctrl-Space` as the prefix key instead of the default `Ctrl-b`.
+This configuration uses the default `Ctrl-b` prefix key.
 
 ### Essential Commands
 
@@ -104,24 +163,47 @@ This configuration uses `Ctrl-Space` as the prefix key instead of the default `C
 - `tmux kill-session -t <n>` - Kill session
 
 **Window Management:**
-- `Prefix + c` - Create new window
+- `Prefix + c` - Create new window (in the current pane's directory)
 - `Prefix + ,` - Rename current window
 - `Prefix + n` - Next window
 - `Prefix + p` - Previous window
-- `Prefix + 0-9` - Switch to window by number
+- `Prefix + 1-9` - Switch to window by number (windows start at 1)
 
 **Pane Management:**
-- `Prefix + |` - Split vertically
-- `Prefix + -` - Split horizontally
-- `Alt + Arrow Keys` - Navigate panes (no prefix needed)
+- `Prefix + |` - Split left/right (same directory)
+- `Prefix + -` - Split top/bottom (same directory)
+- `Prefix + Arrow Keys` - Navigate panes
+- `Prefix + H/J/K/L` - Resize by 5, repeatable (hold the key)
 - `Prefix + x` - Close current pane
 - `Prefix + z` - Toggle pane zoom
 
 **Utility:**
 - `Prefix + r` - Reload tmux config
-- `Prefix + M` - Toggle mouse mode
-- `Prefix + [` - Enter copy mode (use vim keys to navigate)
+- `Prefix + m` - Toggle mouse mode (off by default)
+- `Prefix + [` - Enter copy mode (vi keys: `v` select, `y` copy, `q` exit)
 - `Prefix + d` - Detach from session
+
+See `tmux/TMUX_GUIDE.md` for the full reference.
+
+## Clipboard
+
+Copying on a remote machine puts the text on your local clipboard, so a yank
+over SSH pastes into any Mac app. This uses OSC 52: the copy is encoded into a
+terminal escape sequence that travels back through SSH and tmux. Nothing to
+install remotely, no X11 forwarding.
+
+- `tmux`: `set-clipboard on` forwards OSC 52 from programs inside it, and emits
+  it for its own copy-mode yanks. The default, `external`, only forwards.
+- `nvim`: OSC 52 provider when `$SSH_TTY` is set, system clipboard locally
+- `vim`, `vim-light`: emitted from a `TextYankPost` autocmd
+
+Your terminal must allow it. In iTerm2: Settings > General > Selection >
+"Applications in terminal may access clipboard". Terminal.app has no OSC 52
+support.
+
+Pasting the other way, Mac to remote, is your terminal's own paste (`Cmd+V`) and
+needs no configuration. Most terminals refuse OSC 52 *reads*, so nothing here
+attempts one. Very large yanks are skipped.
 
 ## Fonts
 
@@ -139,14 +221,21 @@ In order of preference:
 3. fish: `brew install fish`
 
 Both `.zshrc` and `.bashrc` are configured with:
-- [Starship](https://starship.rs/) prompt
-- [Rye](https://rye-up.com/) Python environment management
-- Common aliases for development
+- [Starship](https://starship.rs/) prompt when installed, otherwise a native
+  prompt with the git branch
+- [Rye](https://rye-up.com/) Python environment management, if present
+- Common aliases for development, shared via `shell/.aliases`
+
+Every optional tool is guarded, so a shell on a bare box prints nothing on
+startup. Generated `starship` and `fzf` init is cached under `~/.cache/zsh` and
+`~/.cache/bash`; sourcing that is faster than re-running each tool per shell.
 
 ### FZF Configuration
 
-The setup includes fzf for fuzzy finding. If you see "bat: command not found" errors, either:
-1. Install `bat` for syntax highlighting: `brew install bat` (macOS) or `sudo apt install bat` (Linux)
+The full tier includes fzf: `Ctrl+R` history, `Ctrl+T` files, `Alt+C` cd.
+Debian and Ubuntu ship `bat` as `batcat`; the shells alias around that. If you
+still see "bat: command not found", either:
+1. Install `bat`: `brew install bat` (macOS) or `sudo apt install bat` (Linux)
 2. Or configure fzf to use `cat` instead by adding to your shell config:
    ```bash
    export FZF_DEFAULT_OPTS='--preview "cat {}"'

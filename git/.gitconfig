@@ -1,12 +1,10 @@
-[user]
-	name = Ben Cutrell
-	email = bcutrell13@gmail.com
+# Machine-local settings (identity, credential helper) live in
+# ~/.gitconfig.local, written by setup.sh. Keep this file portable.
+[include]
+	path = ~/.gitconfig.local
 
 [core]
-	excludesfile = /Users/bcutrell/.gitignore_global
-
-[credential]
-	helper = osxkeychain
+	excludesfile = ~/.gitignore_global
 
 [init]
 	defaultBranch = main

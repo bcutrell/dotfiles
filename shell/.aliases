@@ -1,10 +1,12 @@
 #
-# Alias
+# Shared by bash and zsh (sourced by .zshrc and .bashrc only), so bash/zsh
+# builtins are fair game. Keep it cross-platform.
 #
-alias restart_shell="exec $SHELL"
 alias c="clear"
 alias search="rg -S --no-ignore"
-alias nvim_config="nvim ~/.config/nvim/init.lua"
+alias nvim_config='$EDITOR ~/.config/nvim/init.lua'
+# Single-quoted so $SHELL resolves when run, not when the alias is defined.
+alias restart_shell='exec "$SHELL"'
 
 # Directory navigation
 alias ..="cd .."
@@ -18,15 +20,38 @@ alias ggn="git grep -n"
 alias gd="git diff"
 alias gb="git branch"
 alias gl="git log"
-alias gitapplyplz="git apply --ignore-space-change --ignore-whitespace"
 alias gc="git commit"
+alias gitapplyplz="git apply --ignore-space-change --ignore-whitespace"
 alias gbds="git for-each-ref --sort=-committerdate --format='%(committerdate:short) %(refname:short)' refs/heads/"
 
-# utility
-alias findlarge='function _findlarge() { find "${1:-.}" -type f -print0 | xargs -0 du -sh | sort -rh | head -n "${2:-10}"; }; _findlarge'
-alias dirsize='du -h --max-depth=1 | sort -hr'
-alias mv_unstaged='mkdir -p unstaged && git ls-files --others --exclude-standard | xargs -I {} mv {} unstaged/'
-alias ports='sudo ss -tulpn'
-alias listening='sudo ss -tlpn'
-alias portcheck='sudo netstat -tulpn'
+# Utility. BSD (macOS) and GNU (Linux) differ on du/ss, so branch by platform.
+# $OSTYPE is set by both shells, so this costs no fork; `uname` would.
+case $OSTYPE in
+darwin*)
+    alias dirsize='du -d 1 -h . | sort -rh'
+    alias ports='sudo lsof -nP -iTCP -sTCP:LISTEN'
+    alias listening='sudo lsof -nP -iTCP -sTCP:LISTEN'
+    ;;
+*)
+    alias dirsize='du -h --max-depth=1 | sort -hr'
+    alias ports='sudo ss -tulpn'
+    alias listening='sudo ss -tlpn'
+    ;;
+esac
 alias openports='sudo lsof -i'
+
+# findlarge [dir] [count] -- largest files under a directory
+findlarge() {
+    find "${1:-.}" -type f -print0 2>/dev/null \
+        | xargs -0 du -h 2>/dev/null \
+        | sort -rh \
+        | head -n "${2:-10}"
+}
+
+mv_unstaged() {
+    mkdir -p unstaged
+    git ls-files --others --exclude-standard | while IFS= read -r f; do
+        mkdir -p "unstaged/$(dirname "$f")"
+        mv "$f" "unstaged/$f"
+    done
+}
