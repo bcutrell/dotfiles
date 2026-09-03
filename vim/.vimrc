@@ -145,3 +145,29 @@ augroup END
 let g:termdebug_popup = 0
 let g:termdebug_wide = 163
 packadd termdebug
+
+" Clipboard over SSH via OSC 52.
+" Vim has no built-in support, so encode the yank into an escape sequence and
+" write it to the terminal. It travels back through ssh -- and through tmux,
+" which forwards it when set-clipboard is on -- to the terminal you are sitting
+" at, so a yank on a remote box lands on the local clipboard.
+" Pasting the other way is the terminal's own paste (Cmd+V), which arrives as
+" keystrokes; OSC 52 reads are refused by most terminals, so we do not try.
+if exists('##TextYankPost') && !has('gui_running')
+  function! s:Osc52(text) abort
+    " Terminals and tmux cap the sequence length; skip absurd yanks.
+    if strlen(a:text) > 74994
+      return
+    endif
+    let l:b64 = substitute(system('base64 | tr -d "\n"', a:text), '\n', '', 'g')
+    silent! call writefile(["\e]52;c;" . l:b64 . "\a"], '/dev/tty', 'b')
+  endfunction
+
+  augroup Osc52Yank
+    autocmd!
+    autocmd TextYankPost *
+          \ if v:event.operator ==# 'y' && v:event.regname ==# '' |
+          \   call s:Osc52(join(v:event.regcontents, "\n")) |
+          \ endif
+  augroup END
+endif

@@ -24,7 +24,28 @@ vim.opt.cursorline = true
 vim.opt.scrolloff = 10
 
 -- Clipboard
+-- Locally, talk to the system clipboard directly (pbcopy/xclip).
+-- Over SSH there is nothing local to talk to, so use OSC 52: the copy is
+-- encoded into an escape sequence that travels back through ssh -- and through
+-- tmux, which forwards it when set-clipboard is on -- to the terminal you are
+-- actually sitting at. That puts a remote yank on the Mac clipboard.
+--
+-- Paste deliberately reads the unnamed register rather than querying the
+-- terminal: OSC 52 reads are a security hole and most terminals (iTerm2
+-- included) refuse to answer, which would just hang. To paste *from* the Mac,
+-- use the terminal's own paste (Cmd+V) -- that arrives as keystrokes.
 vim.schedule(function()
+  if vim.env.SSH_TTY or vim.env.SSH_CONNECTION then
+    local osc52 = require 'vim.ui.clipboard.osc52'
+    local from_unnamed = function()
+      return vim.split(vim.fn.getreg '"', '\n')
+    end
+    vim.g.clipboard = {
+      name = 'OSC 52',
+      copy = { ['+'] = osc52.copy '+', ['*'] = osc52.copy '*' },
+      paste = { ['+'] = from_unnamed, ['*'] = from_unnamed },
+    }
+  end
   vim.opt.clipboard = 'unnamedplus'
 end)
 
@@ -155,7 +176,8 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   desc = 'Highlight when yanking text',
   group = vim.api.nvim_create_augroup('highlight-yank', { clear = true }),
   callback = function()
-    vim.highlight.on_yank()
+    local hl = vim.hl or vim.highlight -- vim.highlight renamed in 0.11
+    hl.on_yank()
   end,
 })
 vim.api.nvim_create_user_command('RemoveTrailingWhitespace', function()
@@ -195,6 +217,7 @@ require('lazy').setup({
   -- Git signs
   {
     'lewis6991/gitsigns.nvim',
+    event = { 'BufReadPre', 'BufNewFile' },
     opts = {
       signs = {
         add = { text = '+' },
@@ -275,6 +298,8 @@ require('lazy').setup({
   -- FZF
   {
     'ibhagwan/fzf-lua',
+    cmd = 'FzfLua',
+    keys = { '<leader>s', '<leader>f', '<leader>/', '<leader><leader>' },
     dependencies = { 'nvim-tree/nvim-web-devicons' },
     config = function()
       local fzf = require 'fzf-lua'
@@ -284,7 +309,11 @@ require('lazy').setup({
           height = 0.85,
           width = 0.80,
           preview = {
-            default = 'bat',
+            -- Debian/Ubuntu ship bat as `batcat`. Fall back to the builtin
+            -- previewer if neither is on PATH.
+            default = (vim.fn.executable 'bat' == 1 and 'bat')
+              or (vim.fn.executable 'batcat' == 1 and 'bat_native')
+              or 'builtin',
           },
         },
       }
@@ -326,12 +355,25 @@ require('lazy').setup({
     'neovim/nvim-lspconfig',
     dependencies = {
       { 'williamboman/mason.nvim', opts = {} },
-      'williamboman/mason-lspconfig.nvim',
+      -- Pinned to v1: v2 removed the `handlers` API used below.
+      { 'williamboman/mason-lspconfig.nvim', version = '^1' },
       'WhoIsSethDaniel/mason-tool-installer.nvim',
       { 'j-hui/fidget.nvim', opts = {} },
       'hrsh7th/cmp-nvim-lsp',
     },
     config = function()
+      -- Neovim 0.11 turned client.supports_method(m) into client:supports_method(m).
+      -- Call whichever form this version provides.
+      local function supports_method(client, method)
+        local ok, res = pcall(function()
+          return client:supports_method(method)
+        end)
+        if ok then
+          return res
+        end
+        return client.supports_method(method)
+      end
+
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('lsp-attach', { clear = true }),
         callback = function(event)
@@ -351,7 +393,7 @@ require('lazy').setup({
           map('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 
           local client = vim.lsp.get_client_by_id(event.data.client_id)
-          if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
+          if client and supports_method(client, vim.lsp.protocol.Methods.textDocument_documentHighlight) then
             local highlight_augroup = vim.api.nvim_create_augroup('lsp-highlight', { clear = false })
             vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
               buffer = event.buf,
@@ -374,7 +416,7 @@ require('lazy').setup({
             })
           end
 
-          if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
+          if client and supports_method(client, vim.lsp.protocol.Methods.textDocument_inlayHint) then
             map('<leader>ch', function()
               vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
             end, '[T]oggle Inlay [H]ints')
@@ -559,6 +601,7 @@ require('lazy').setup({
   -- Treesitter
   {
     'nvim-treesitter/nvim-treesitter',
+    event = { 'BufReadPost', 'BufNewFile' },
     build = ':TSUpdate',
     main = 'nvim-treesitter.configs',
     opts = {
@@ -619,6 +662,7 @@ require('lazy').setup({
   {
     'ThePrimeagen/harpoon',
     branch = 'harpoon2',
+    keys = { '<leader>a', '<C-e>', '<leader>1', '<leader>2', '<leader>3' },
     config = function()
       local harpoon = require 'harpoon'
       harpoon:setup()
@@ -653,6 +697,9 @@ require('lazy').setup({
   -- Vimwiki
   {
     'vimwiki/vimwiki',
+    cmd = { 'VimwikiIndex', 'VimwikiUISelect', 'VimwikiDiaryIndex', 'VimwikiMakeDiaryNote' },
+    keys = { '<leader>ww', '<leader>wi' },
+    ft = 'vimwiki',
     init = function()
       vim.g.vimwiki_list = {
         {
@@ -701,6 +748,8 @@ require('lazy').setup({
   -- Git integration with fugitive
   {
     'tpope/vim-fugitive',
+    cmd = { 'Git', 'G' },
+    keys = { '<leader>gg', '<leader>gb', '<leader>gl', '<leader>gc' },
     config = function()
       vim.keymap.set('n', '<leader>gg', '<cmd>Git<cr>', { desc = '[G]it status' })
       vim.keymap.set('n', '<leader>gb', '<cmd>Git blame<cr>', { desc = '[G]it [B]lame' })
@@ -711,6 +760,7 @@ require('lazy').setup({
   -- Diffview for git diffs
   {
     'sindrets/diffview.nvim',
+    cmd = { 'DiffviewOpen', 'DiffviewClose', 'DiffviewFileHistory' },
     config = function()
       require('diffview').setup {
         enhanced_diff_hl = true,
@@ -722,6 +772,7 @@ require('lazy').setup({
       vim.keymap.set('n', '<leader>gL', '<cmd>DiffviewOpen HEAD~1 -- %<cr>', { desc = '[G]it diff [L]ast commit' })
       vim.keymap.set('n', '<leader>gh', '<cmd>DiffviewFileHistory %<cr>', { desc = '[G]it [H]istory (current file)' })
       vim.keymap.set('n', '<leader>gx', '<cmd>DiffviewClose<cr>', { desc = '[G]it diff e[X]it' })
+      vim.keymap.set('n', '<leader>gC', '<cmd>DiffviewOpen HEAD~1..HEAD<cr>', { desc = '[G]it diff last [C]ommit (all files)' })
 
       -- Diff against a branch (prompts for input)
       vim.keymap.set('n', '<leader>gB', function()
