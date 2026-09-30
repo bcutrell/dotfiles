@@ -82,6 +82,21 @@ if (( $+commands[fzf] )); then
         export FZF_DEFAULT_COMMAND='rg --files --hidden --glob "!.git"'
         export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
     fi
+    # h: fuzzy-pick a history entry onto the prompt without running it.
+    # fzf's Ctrl-R widget can't be called outside ZLE, so this mirrors it:
+    # pick by event number (deduped, newest first), then fetch the entry from
+    # $history, which keeps multi-line commands intact (`fc -ln` flattens them).
+    h() {
+        zmodload -F zsh/parameter p:history 2>/dev/null
+        local sel n
+        sel=$(fc -rl 1 |
+            awk '{ c=$0; sub(/^[ \t]*[0-9]+\**[ \t]+/, "", c); if (!seen[c]++) print }' |
+            fzf -n2.. --scheme=history) || return
+        n=${${(z)sel}[1]}
+        n=${n%%\**}
+        [[ $n == <1-> ]] || return
+        print -z -- "${history[$n]}"
+    }
 fi
 
 unset _zcache

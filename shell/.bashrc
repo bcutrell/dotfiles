@@ -83,4 +83,15 @@ if command -v fzf >/dev/null 2>&1; then
         export FZF_DEFAULT_COMMAND='rg --files --hidden --glob "!.git"'
         export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
     fi
+    # h: fuzzy-pick a history entry. Reuses fzf's own Ctrl-R function
+    # (dedup, newest-first ordering, multi-line entries); outside readline it
+    # prints the pick instead of editing the line. bash has no `print -z`, so
+    # it is pushed onto history and echoed -- press Up to recall it.
+    h() {
+        local cmd
+        cmd=$(__fzf_history__) || return
+        [ -n "$cmd" ] || return
+        history -s "$cmd"
+        printf '%s\n' "$cmd"
+    }
 fi
