@@ -749,39 +749,45 @@ require('lazy').setup({
   {
     'tpope/vim-fugitive',
     cmd = { 'Git', 'G' },
-    keys = { '<leader>gg', '<leader>gb', '<leader>gl', '<leader>gc' },
-    config = function()
-      vim.keymap.set('n', '<leader>gg', '<cmd>Git<cr>', { desc = '[G]it status' })
-      vim.keymap.set('n', '<leader>gb', '<cmd>Git blame<cr>', { desc = '[G]it [B]lame' })
-      vim.keymap.set('n', '<leader>gl', '<cmd>Git log --oneline<cr>', { desc = '[G]it [L]og' })
-      vim.keymap.set('n', '<leader>gc', '<cmd>Git commit<cr>', { desc = '[G]it [C]ommit' })
-    end,
+    keys = {
+      { '<leader>gg', '<cmd>Git<cr>', desc = '[G]it status' },
+      { '<leader>gb', '<cmd>Git blame<cr>', desc = '[G]it [B]lame' },
+      { '<leader>gl', '<cmd>Git log --oneline<cr>', desc = '[G]it [L]og' },
+      { '<leader>gc', '<cmd>Git commit<cr>', desc = '[G]it [C]ommit' },
+    },
   },
   -- Diffview for git diffs
   {
     'sindrets/diffview.nvim',
     cmd = { 'DiffviewOpen', 'DiffviewClose', 'DiffviewFileHistory' },
-    config = function()
-      require('diffview').setup {
-        enhanced_diff_hl = true,
-        use_icons = vim.g.have_nerd_font,
-      }
+    -- Keymaps live in `keys` (not `config`) so lazy.nvim registers them at
+    -- startup and loads the plugin on first use. Maps set inside `config`
+    -- would only exist after the plugin had already been loaded by a command.
+    keys = {
+      -- Repo-wide diffs
+      { '<leader>gd', '<cmd>DiffviewOpen HEAD<cr>', desc = '[G]it [D]iff all changes vs HEAD' },
+      { '<leader>gC', '<cmd>DiffviewOpen HEAD~1..HEAD<cr>', desc = '[G]it diff last [C]ommit (all files)' },
+      { '<leader>gx', '<cmd>DiffviewClose<cr>', desc = '[G]it diff e[X]it' },
       -- Current file diffs
-      vim.keymap.set('n', '<leader>gd', '<cmd>DiffviewOpen HEAD<cr>', { desc = '[G]it [D]iff staged' })
-      vim.keymap.set('n', '<leader>gf', '<cmd>DiffviewOpen -- %<cr>', { desc = '[G]it diff [F]ile' })
-      vim.keymap.set('n', '<leader>gL', '<cmd>DiffviewOpen HEAD~1 -- %<cr>', { desc = '[G]it diff [L]ast commit' })
-      vim.keymap.set('n', '<leader>gh', '<cmd>DiffviewFileHistory %<cr>', { desc = '[G]it [H]istory (current file)' })
-      vim.keymap.set('n', '<leader>gx', '<cmd>DiffviewClose<cr>', { desc = '[G]it diff e[X]it' })
-      vim.keymap.set('n', '<leader>gC', '<cmd>DiffviewOpen HEAD~1..HEAD<cr>', { desc = '[G]it diff last [C]ommit (all files)' })
-
-      -- Diff against a branch (prompts for input)
-      vim.keymap.set('n', '<leader>gB', function()
-        local branch = vim.fn.input('Diff against branch: ')
-        if branch ~= '' then
-          vim.cmd('DiffviewOpen ' .. branch .. ' -- %')
-        end
-      end, { desc = '[G]it diff [B]ranch' })
-    end,
+      { '<leader>gf', '<cmd>DiffviewOpen -- %<cr>', desc = '[G]it diff [F]ile' },
+      { '<leader>gL', '<cmd>DiffviewOpen HEAD~1 -- %<cr>', desc = '[G]it diff [L]ast commit' },
+      { '<leader>gh', '<cmd>DiffviewFileHistory %<cr>', desc = '[G]it [H]istory (current file)' },
+      -- Diff current file against a branch (prompts for input)
+      {
+        '<leader>gB',
+        function()
+          local branch = vim.fn.input 'Diff against branch: '
+          if branch ~= '' then
+            vim.cmd('DiffviewOpen ' .. branch .. ' -- %')
+          end
+        end,
+        desc = '[G]it diff [B]ranch',
+      },
+    },
+    opts = {
+      enhanced_diff_hl = true,
+      use_icons = vim.g.have_nerd_font,
+    },
   },
 }, {
   ui = {
