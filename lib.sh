@@ -1,4 +1,4 @@
-# Shared helpers for setup.sh and clean.sh. POSIX sh -- no bashisms.
+# Shared helpers for setup.sh and clean.sh. POSIX sh.
 # shellcheck shell=sh
 
 if [ -t 1 ] && [ -z "${NO_COLOR:-}" ]; then
@@ -12,11 +12,9 @@ log()  { printf '%s\n' "  $*"; }
 step() { printf '%s==>%s %s\n' "$C_GRN" "$C_RESET" "$*"; }
 warn() { printf '%swarn:%s %s\n' "$C_YEL" "$C_RESET" "$*" >&2; }
 die()  { printf '%serror:%s %s\n' "$C_RED" "$C_RESET" "$*" >&2; exit 1; }
-
 have() { command -v "$1" >/dev/null 2>&1; }
 
-# confirm <prompt> [default y|n]
-# Honors ASSUME_YES=1 for non-interactive runs.
+# confirm <prompt> [default y|n]; ASSUME_YES=1 takes the default.
 confirm() {
     _def=${2:-y}
     if [ "${ASSUME_YES:-0}" = 1 ]; then [ "$_def" = y ]; return; fi
@@ -42,9 +40,8 @@ ask() {
     printf '%s' "$_a"
 }
 
-# Uses $UNAME_S/$UNAME_M when the caller cached them, else asks uname.
 os() {
-    case "${UNAME_S:-$(uname -s)}" in
+    case "$(uname -s)" in
         Darwin) echo macos ;;
         Linux)  if have apt-get; then echo debian; else echo unsupported; fi ;;
         *)      echo unsupported ;;
@@ -53,18 +50,15 @@ os() {
 
 # Normalized to the names Neovim uses in its release assets.
 arch() {
-    case "${UNAME_M:-$(uname -m)}" in
+    case "$(uname -m)" in
         x86_64|amd64)  echo x86_64 ;;
         arm64|aarch64) echo arm64 ;;
         *) uname -m ;;
     esac
 }
 
-# manifest [tier] -> "<repo path> <$HOME path>" pairs, one per line.
-# No argument = every entry of every tier (what `clean.sh unlink` wants).
-# The single source of truth for what may be linked: an explicit allowlist,
-# so nothing unlisted can ever land in $HOME.
-# Note the two `.vimrc` rows: they share a target and are separated by tier.
+# manifest [tier] -> "<repo path> <$HOME path>" lines. No tier = every entry.
+# The allowlist of everything that may be linked into $HOME.
 manifest() {
     _want=${1:-}
     while read -r _tier _src _dst; do
@@ -88,13 +82,10 @@ EOF
 
 BACKUP_ROOT="$HOME/.dotfiles_backup"
 
-# is_our_link <$HOME-relative dst> <repo-relative src>
-# The "is this path our symlink?" test, in one place. Callers must have $REPO set.
+# is_our_link <$HOME-relative dst> <repo-relative src>; needs $REPO.
 is_our_link() { [ -L "$HOME/$1" ] && [ "$(resolve_link "$HOME/$1")" = "$REPO/$2" ]; }
 
-# resolve_link <symlink> -> absolute target path.
-# Handles relative targets so callers can compare against an absolute repo
-# path. (Links left by the old GNU Stow setup are relative; ours are not.)
+# resolve_link <symlink> -> absolute target (old stow links are relative).
 resolve_link() {
     _t=$(readlink "$1") || return 1
     case "$_t" in /*) printf '%s' "$_t"; return 0 ;; esac

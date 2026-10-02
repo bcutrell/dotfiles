@@ -1,5 +1,5 @@
 #!/bin/sh
-# Teardown helpers.  Usage: sh clean.sh <brew|cache|unlink|doctor|all>
+# Usage: sh clean.sh <brew|cache|unlink|doctor|all>
 set -eu
 
 REPO=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
@@ -20,13 +20,12 @@ Usage: sh clean.sh <command>
 EOF
 }
 
-# size <path> -> human size, or empty if absent
 size_of() {
     [ -e "$1" ] || return 1
     _s=$(du -sh "$1" 2>/dev/null) || return 1
-    _s=${_s%%	*}                 # drop the path (du separates with a tab)
+    _s=${_s%%	*}
     while :; do case $_s in ' '*) _s=${_s# } ;; *) break ;; esac; done
-    printf '%s' "$_s"             # ...and BSD du left-pads the size
+    printf '%s' "$_s"
 }
 
 size_line() { printf '  %-38s %6s   ' "$1" "$2"; }
@@ -86,7 +85,6 @@ cmd_cache() {
     offer "$HOME/.local/share/nvim/mason"     "nvim LSP servers (mason)"
     offer "$HOME/.cache/nvim"                 "nvim cache"
     offer "$HOME/.vim/plugged"                "vim plugins (vim-plug)"
-    # Generated starship/fzf init; the rc files rebuild these on next shell.
     offer "$HOME/.cache/zsh"                  "zsh init cache"
     offer "$HOME/.cache/bash"                 "bash init cache"
 
@@ -98,8 +96,6 @@ cmd_cache() {
     _b=$BACKUP_ROOT
     if [ -d "$_b" ]; then
         step "Old dotfiles backups"
-        # Timestamped names sort lexically = chronologically, so a glob gives
-        # them in order and the last one is the newest. No ls/wc/sed forks.
         set -- "$_b"/*
         [ -e "$1" ] || set --
         log "$# backup(s), $(size_of "$_b" || echo 0) total -- keeping the newest"
@@ -112,7 +108,6 @@ cmd_cache() {
 
 cmd_unlink() {
     step "Unlinking"
-    # No tier argument: every entry this repo could ever own.
     manifest | while read -r src dst; do
         if is_our_link "$dst" "$src"; then
             rm "$HOME/$dst"; log "removed ~/$dst"
