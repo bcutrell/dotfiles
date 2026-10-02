@@ -483,7 +483,14 @@ require('lazy').setup({
           function(server_name)
             local server = servers[server_name] or {}
             server.capabilities = vim.tbl_deep_extend('force', {}, capabilities, server.capabilities or {})
-            require('lspconfig')[server_name].setup(server)
+            if vim.fn.has 'nvim-0.11' == 1 then
+              -- 0.11 ships vim.lsp.config; the require('lspconfig') setup
+              -- path is deprecated there and warns on every start.
+              vim.lsp.config(server_name, server)
+              vim.lsp.enable(server_name)
+            else
+              require('lspconfig')[server_name].setup(server)
+            end
           end,
         },
       }
