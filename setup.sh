@@ -19,7 +19,7 @@ usage() {
     cat <<'EOF'
 Usage: sh setup.sh [options]
 
-  --minimal   VMs, weak boxes, servers. git, curl, tmux, vim (no plugins).
+  --minimal   VMs, weak boxes, servers. git, curl, tmux, screen, vim (no plugins).
               No Node, no Neovim, no Homebrew.
   --full      Workstation. Everything above plus Neovim + LSP, Node,
               fzf, ripgrep, starship.
@@ -66,7 +66,7 @@ doctor() {
     log "repo      $REPO"
 
     step "Tools"
-    for t in git curl tmux vim nvim zsh node rg fzf bat starship; do
+    for t in git curl tmux screen vim nvim zsh node rg fzf bat starship; do
         if _p=$(command -v "$t"); then
             printf '  %-10s %sok%s  %s\n' "$t" "$C_GRN" "$C_RESET" "$_p"
         else
@@ -98,7 +98,7 @@ if [ -z "$TIER" ]; then
         cat <<'EOF'
 
   1) minimal   VMs, weak boxes, servers
-               git, curl, tmux, vim (no plugins). No Node/Neovim/Homebrew.
+               git, curl, tmux, screen, vim (no plugins). No Node/Neovim/Homebrew.
   2) full      Workstation
                adds Neovim & LSP, Node, fzf, ripgrep, starship
 
@@ -180,7 +180,7 @@ install_macos() {
     if [ "$TIER" = minimal ]; then
         step "Packages"
         if have brew; then
-            install_missing "brew formulae" brew_list brew_do git tmux
+            install_missing "brew formulae" brew_list brew_do git tmux screen
         else
             log "Homebrew not present -- skipping, minimal never installs it"
         fi
@@ -200,7 +200,7 @@ install_macos() {
     # No `brew upgrade`/`cleanup` here -- it ran on every invocation before and
     # was the slowest thing in the repo.
     install_missing "brew formulae" brew_list brew_do \
-        git curl tmux zsh neovim node ripgrep fzf bat gh starship glow
+        git curl tmux screen zsh neovim node ripgrep fzf bat gh starship glow
 
     if confirm "Install GUI apps (rectangle, postman)?" n; then
         install_missing "casks" cask_list cask_do rectangle postman
@@ -210,12 +210,12 @@ install_macos() {
 install_debian() {
     if [ "$TIER" = minimal ]; then
         step "Packages (apt, minimal)"
-        install_missing "apt packages" apt_list apt_do ca-certificates git curl tmux vim
+        install_missing "apt packages" apt_list apt_do ca-certificates git curl tmux screen vim
         return
     fi
     step "Packages (apt, full)"
     install_missing "apt packages" apt_list apt_do \
-        ca-certificates build-essential git curl unzip tmux zsh \
+        ca-certificates build-essential git curl unzip tmux screen zsh \
         ripgrep bat fzf python3
 
     if ! have node; then
