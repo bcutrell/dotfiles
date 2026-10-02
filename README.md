@@ -51,7 +51,7 @@ it finds at a target path anyway.
 
 ```bash
 sh setup.sh              # asks which tier
-sh setup.sh --minimal    # weak box: git, curl, tmux, plugin-free vim
+sh setup.sh --minimal    # weak box: git, curl, tmux, screen, plugin-free vim
 sh setup.sh --full       # workstation: adds Neovim + LSP, Node, fzf, ripgrep, starship
 sh setup.sh --link-only  # symlinks only, install nothing
 sh setup.sh --yes        # no prompts, take every default
