@@ -189,15 +189,30 @@ See `tmux/TMUX_GUIDE.md` for the full reference.
 
 ## Clipboard
 
-Copying on a remote machine puts the text on your local clipboard, so a yank
-over SSH pastes into any Mac app. This uses OSC 52: the copy is encoded into a
-terminal escape sequence that travels back through SSH and tmux. Nothing to
-install remotely, no X11 forwarding.
+Inside tmux, the tmux paste buffer is the shared clipboard. Every pane, window
+and session on that tmux server sees it, and so do nvim, vim and tmux's own
+copy mode, so a yank in one place pastes in all the others. tmux also forwards
+each copy via OSC 52 -- through SSH if need be -- to the terminal you are
+sitting at, so it lands on the Mac clipboard too. Nothing to install remotely,
+no X11 forwarding.
 
-- `tmux`: `set-clipboard on` forwards OSC 52 from programs inside it, and emits
-  it for its own copy-mode yanks. The default, `external`, only forwards.
-- `nvim`: OSC 52 provider when `$SSH_TTY` is set, system clipboard locally
-- `vim`, `vim-light`: emitted from a `TextYankPost` autocmd
+| Action | Where it goes |
+|---|---|
+| nvim yank or delete | tmux buffer, and the Mac clipboard |
+| vim yank | tmux buffer, and the Mac clipboard |
+| tmux copy mode `y` | tmux buffer, and the Mac clipboard |
+| nvim `p` (remote) | reads the tmux buffer |
+| nvim `p` (local Mac) | reads the Mac clipboard, which the copies above also updated |
+| vim `,p` / `,P` | reads the tmux buffer |
+| tmux `prefix` `]` | pastes the tmux buffer into any pane |
+
+- `tmux`: `set-clipboard on` makes `load-buffer -w` and copy-mode yanks emit
+  OSC 52, and accepts OSC 52 from programs inside it. The default, `external`,
+  only forwards.
+- `nvim`: `g:clipboard` is the tmux buffer when `$TMUX` is set, OSC 52 when
+  only `$SSH_TTY` is set, and Neovim's own pbcopy/xclip provider otherwise.
+- `vim`, `vim-light`: a `TextYankPost` autocmd calls `tmux load-buffer -w`,
+  or writes the OSC 52 sequence itself outside tmux.
 
 Your terminal must allow it. In iTerm2: Settings > General > Selection >
 "Applications in terminal may access clipboard". Terminal.app has no OSC 52
@@ -205,7 +220,7 @@ support.
 
 Pasting the other way, Mac to remote, is your terminal's own paste (`Cmd+V`) and
 needs no configuration. Most terminals refuse OSC 52 *reads*, so nothing here
-attempts one. Very large yanks are skipped.
+attempts one. Very large yanks outside tmux are skipped.
 
 ## Fonts
 
@@ -297,6 +312,6 @@ $ nvim +Lazy                    # open lazy.nvim interface
 $ nvim +Mason                   # open mason interface for LSPs
 $ nvim +checkhealth             # check neovim health
 
-# fix clipboard on debian
+# clipboard in a GUI Debian session without tmux
 $ sudo apt install xclip
 ```
