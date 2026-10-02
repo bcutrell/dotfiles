@@ -354,7 +354,10 @@ require('lazy').setup({
   {
     'neovim/nvim-lspconfig',
     dependencies = {
-      { 'williamboman/mason.nvim', opts = {} },
+      -- mason.nvim and mason-lspconfig must share a major version, and
+      -- mason-tool-installer picks its code path from mason.nvim's. v2 of
+      -- both needs Neovim 0.11, so hold the whole stack at v1 for now.
+      { 'williamboman/mason.nvim', version = '^1', opts = {} },
       -- Pinned to v1: v2 removed the `handlers` API used below.
       { 'williamboman/mason-lspconfig.nvim', version = '^1' },
       'WhoIsSethDaniel/mason-tool-installer.nvim',
