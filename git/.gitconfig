@@ -1,5 +1,4 @@
-# Machine-local settings (identity, credential helper) live in
-# ~/.gitconfig.local, written by setup.sh. Keep this file portable.
+# Identity and credential helper live in ~/.gitconfig.local (written by setup.sh).
 [include]
 	path = ~/.gitconfig.local
 

@@ -1,32 +1,23 @@
 #!/bin/sh
-# Dotfiles setup. Usage:  sh setup.sh [--minimal|--full] [--link-only] [--yes] [--check]
+# Usage: sh setup.sh [--minimal|--full] [--link-only] [--yes] [--check]
 set -eu
 
 REPO=$(CDPATH='' cd -- "$(dirname -- "$0")" && pwd)
 cd "$REPO"
 . "$REPO/lib.sh"
 
-TIER=''
-ASSUME_YES=0
-CHECK_ONLY=0
-DO_PKGS=1
-DO_LINK=1
-UNAME_S=$(uname -s); UNAME_M=$(uname -m); UNAME_R=$(uname -r)
-OS=$(os)
-ARCH=$(arch)
+TIER=''; ASSUME_YES=0; CHECK_ONLY=0; DO_PKGS=1; DO_LINK=1
+OS=$(os); ARCH=$(arch)
 
 usage() {
     cat <<'EOF'
 Usage: sh setup.sh [options]
 
-  --minimal   VMs, weak boxes, servers. git, curl, tmux, screen, vim (no plugins).
-              No Node, no Neovim, no Homebrew.
-  --full      Workstation. Everything above plus Neovim + LSP, Node,
-              fzf, ripgrep, starship.
-  --link-only Skip package installation; only link dotfiles.
+  --minimal   VMs, weak boxes, servers: git, curl, tmux, screen, vim (no plugins).
+  --full      Workstation: adds Neovim + LSP, Node, fzf, ripgrep, starship.
+  --link-only Only link dotfiles; install nothing.
   --yes       Non-interactive; accept every default.
-  --check     Report OS, tier, tools and link status. Changes nothing.
-  --help      This message.
+  --check     Report OS, tools and link status. Changes nothing.
 
 With no tier flag, setup.sh asks.
 EOF
@@ -34,12 +25,12 @@ EOF
 
 while [ $# -gt 0 ]; do
     case "$1" in
-        --minimal) TIER=minimal ;;
+        --minimal)   TIER=minimal ;;
+        --full)      TIER=full ;;
         --link-only) DO_PKGS=0 ;;
-        --full)    TIER=full ;;
-        --yes|-y)  ASSUME_YES=1 ;;
-        --check)   CHECK_ONLY=1 ;;
-        --help|-h) usage; exit 0 ;;
+        --yes|-y)    ASSUME_YES=1 ;;
+        --check)     CHECK_ONLY=1 ;;
+        --help|-h)   usage; exit 0 ;;
         *) printf 'Unknown option: %s\n\n' "$1" >&2; usage >&2; exit 2 ;;
     esac
     shift
@@ -60,7 +51,7 @@ link_status() {
 
 doctor() {
     step "System"
-    log "os        $OS ($UNAME_S $UNAME_R)"
+    log "os        $OS ($(uname -sr))"
     log "arch      $ARCH"
     log "shell     ${SHELL:-?}"
     log "repo      $REPO"
@@ -89,7 +80,7 @@ if [ "$CHECK_ONLY" = 1 ]; then doctor; exit 0; fi
 
 # ---------------------------------------------------------------- prompts
 
-[ "$OS" = unsupported ] && die "unsupported OS: $UNAME_S. This repo targets macOS and Debian/Ubuntu."
+[ "$OS" = unsupported ] && die "unsupported OS: $(uname -s). This repo targets macOS and Debian/Ubuntu."
 
 if [ -z "$TIER" ]; then
     if [ "$ASSUME_YES" = 1 ]; then
@@ -97,15 +88,13 @@ if [ -z "$TIER" ]; then
     else
         cat <<'EOF'
 
-  1) minimal   VMs, weak boxes, servers
-               git, curl, tmux, screen, vim (no plugins). No Node/Neovim/Homebrew.
-  2) full      Workstation
-               adds Neovim & LSP, Node, fzf, ripgrep, starship
+  1) minimal   VMs, weak boxes, servers: git, curl, tmux, screen, vim (no plugins)
+  2) full      Workstation: adds Neovim & LSP, Node, fzf, ripgrep, starship
 
 EOF
         while [ -z "$TIER" ]; do
             case "$(ask '  Choice?' 1)" in
-                1|minimal|'') TIER=minimal ;;   # Enter or EOF: safe default
+                1|minimal|'') TIER=minimal ;;
                 2|full)       TIER=full ;;
                 *) echo "  Enter 1 or 2." ;;
             esac
@@ -128,10 +117,8 @@ fi
 # ---------------------------------------------------------------- packages
 
 # install_missing <label> <list-cmd> <install-fn> <pkg>...
-# One place that filters a package list down to what is actually missing.
 install_missing() {
     _label=$1; _list=$2; _inst=$3; shift 3
-    # One query for the whole set, then a fork-free membership test per package.
     _have=" $($_list 2>/dev/null | tr '\n' ' ') "
     _missing=''
     for p in "$@"; do
@@ -175,8 +162,6 @@ install_macos() {
         log "finish the GUI installer, then re-run this script"
     fi
 
-    # Minimal never installs Homebrew (far too slow); git and vim come with the
-    # Xcode command line tools.
     if [ "$TIER" = minimal ]; then
         step "Packages"
         if have brew; then
@@ -190,15 +175,13 @@ install_macos() {
     if ! have brew; then
         step "Homebrew"
         if ! confirm "Install Homebrew? (large download)" y; then
-            install_neovim_tarball   # no brew: fall back to the release tarball
+            install_neovim_tarball
             return 0
         fi
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
         have brew || die "Homebrew install failed"
     fi
     step "Packages (brew)"
-    # No `brew upgrade`/`cleanup` here -- it ran on every invocation before and
-    # was the slowest thing in the repo.
     install_missing "brew formulae" brew_list brew_do \
         git curl tmux screen zsh neovim node ripgrep fzf bat gh starship glow
 
@@ -215,8 +198,7 @@ install_debian() {
     fi
     step "Packages (apt, full)"
     install_missing "apt packages" apt_list apt_do \
-        ca-certificates build-essential git curl unzip tmux screen zsh \
-        ripgrep bat fzf python3
+        ca-certificates build-essential git curl unzip tmux screen zsh ripgrep bat fzf python3
 
     if ! have node; then
         step "Node.js LTS"
@@ -291,17 +273,13 @@ if [ -n "$GIT_NAME" ] || [ ! -f "$HOME/.gitconfig.local" ]; then
     log "credential helper set for $OS"
 fi
 
-# ---------------------------------------------------------------- done
-
 step "Done ($TIER)"
 echo
 log "Restart your shell (or: exec \$SHELL)"
 if [ "$TIER" = full ]; then
-    log "Run nvim -- lazy.nvim installs plugins on first launch"
-    log "Then :checkhealth, and :Mason for language servers"
+    log "Run nvim -- lazy.nvim installs plugins on first launch; then :checkhealth and :Mason"
 else
     log "vim is configured with no plugins and no network calls"
-    log "sh setup.sh --full   upgrades this box later"
 fi
 log "sh clean.sh doctor   shows what is installed and linked"
 echo

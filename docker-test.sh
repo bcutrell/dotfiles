@@ -3,14 +3,12 @@
 # Usage: ./docker-test.sh <build|test|test-full|test-nvim|shell|cleanup|all> [debian|ubuntu|both]
 set -uo pipefail
 
-# Reuse the repo's own log/colour helpers (they honour NO_COLOR and non-tty).
 . "$(dirname "$0")/lib.sh"
 ok()   { echo "${C_GRN}PASS${C_RESET} $*"; }
 fail() { echo "${C_RED}FAIL${C_RESET} $*"; FAILED=1; }
 FAILED=0
 
-# Assertion vocabulary injected into every container script, so failure
-# messages stay consistent and live in one place.
+# Injected into every container script.
 PRELUDE='
 assert_fail() { echo "ASSERT: $*"; exit 1; }
 need_cmd()  { command -v "$1" >/dev/null || assert_fail "missing command: $1"; }
@@ -19,7 +17,6 @@ need_link() { [ -L "$HOME/$1" ] || assert_fail "not a symlink: ~/$1"
 no_path()   { [ -e "$1" ] && assert_fail "should not exist: $1"; :; }
 '
 
-
 base_for() { [ "$1" = ubuntu ] && echo "ubuntu:22.04" || echo "debian:12"; }
 img_for()  { echo "dotfiles-test-$1"; }
 
@@ -27,7 +24,6 @@ build() {
     local os=$1 img base
     img=$(img_for "$os"); base=$(base_for "$os")
     step "building $img from $base"
-    # -q already suppresses build output.
     docker build -q --build-arg BASE_IMAGE="$base" -t "$img" . \
         && ok "build $os" || fail "build $os"
 }
@@ -54,13 +50,11 @@ test_syntax() {
 test_minimal() {
     run "$1" "minimal install + link" '
         sh setup.sh --minimal --yes
-        # stow must NOT be needed
         if command -v stow >/dev/null; then assert_fail "unexpected: stow present"; fi
         for c in git curl tmux vim; do need_cmd "$c"; done
         for l in .zshrc .bashrc .aliases .gitconfig .gitignore_global .tmux.conf .vimrc; do
             need_link "$l"
         done
-        # minimal must get the plugin-free vimrc
         grep -q "no plugins, no network calls" "$HOME/.vimrc" || assert_fail "wrong .vimrc for minimal"
         no_path "$HOME/.config/nvim"
         [ -f "$HOME/.gitconfig.local" ] || assert_fail "missing ~/.gitconfig.local"

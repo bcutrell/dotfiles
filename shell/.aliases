@@ -1,19 +1,23 @@
-#
-# Shared by bash and zsh (sourced by .zshrc and .bashrc only), so bash/zsh
-# builtins are fair game. Keep it cross-platform.
-#
+# Shared by .zshrc and .bashrc: environment first, then aliases.
+export LANG=en_US.UTF-8   # not LC_ALL: it breaks on images without the locale generated
+export PATH="$HOME/.local/bin:$PATH"
+[ -d "$HOME/go/bin" ] && export PATH="$PATH:$HOME/go/bin"
+[ -f "$HOME/.rye/env" ] && . "$HOME/.rye/env"
+command -v nvim >/dev/null 2>&1 && export EDITOR=nvim || export EDITOR=vim
+command -v batcat >/dev/null 2>&1 && ! command -v bat >/dev/null 2>&1 && alias bat=batcat
+if command -v rg >/dev/null 2>&1; then
+    export FZF_DEFAULT_COMMAND='rg --files --hidden --glob "!.git"'
+    export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+fi
+
 alias c="clear"
 alias search="rg -S --no-ignore"
 alias nvim_config='$EDITOR ~/.config/nvim/init.lua'
-# Single-quoted so $SHELL resolves when run, not when the alias is defined.
 alias restart_shell='exec "$SHELL"'
-
-# Directory navigation
 alias ..="cd .."
 alias ...="cd ../.."
 alias ....="cd ../../.."
 
-# git
 alias gs="git status"
 alias gco="git checkout"
 alias ggn="git grep -n"
@@ -24,28 +28,22 @@ alias gc="git commit"
 alias gitapplyplz="git apply --ignore-space-change --ignore-whitespace"
 alias gbds="git for-each-ref --sort=-committerdate --format='%(committerdate:short) %(refname:short)' refs/heads/"
 
-# Utility. BSD (macOS) and GNU (Linux) differ on du/ss, so branch by platform.
-# $OSTYPE is set by both shells, so this costs no fork; `uname` would.
 case $OSTYPE in
 darwin*)
     alias dirsize='du -d 1 -h . | sort -rh'
     alias ports='sudo lsof -nP -iTCP -sTCP:LISTEN'
-    alias listening='sudo lsof -nP -iTCP -sTCP:LISTEN'
     ;;
 *)
     alias dirsize='du -h --max-depth=1 | sort -hr'
     alias ports='sudo ss -tulpn'
-    alias listening='sudo ss -tlpn'
     ;;
 esac
+alias listening=ports
 alias openports='sudo lsof -i'
 
-# findlarge [dir] [count] -- largest files under a directory
+# findlarge [dir] [count]
 findlarge() {
-    find "${1:-.}" -type f -print0 2>/dev/null \
-        | xargs -0 du -h 2>/dev/null \
-        | sort -rh \
-        | head -n "${2:-10}"
+    find "${1:-.}" -type f -print0 2>/dev/null | xargs -0 du -h 2>/dev/null | sort -rh | head -n "${2:-10}"
 }
 
 mv_unstaged() {
