@@ -603,6 +603,10 @@ require('lazy').setup({
   -- Treesitter
   {
     'nvim-treesitter/nvim-treesitter',
+    -- The default branch became the 'main' rewrite in 2025, which drops the
+    -- nvim-treesitter.configs module used below and needs Neovim 0.11+.
+    -- Fresh clones must stay on the frozen master branch.
+    branch = 'master',
     event = { 'BufReadPost', 'BufNewFile' },
     build = ':TSUpdate',
     main = 'nvim-treesitter.configs',
