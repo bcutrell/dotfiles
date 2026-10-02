@@ -200,8 +200,7 @@ install_macos() {
     # No `brew upgrade`/`cleanup` here -- it ran on every invocation before and
     # was the slowest thing in the repo.
     install_missing "brew formulae" brew_list brew_do \
-        git curl wget tmux zsh neovim node go rust ripgrep fd fzf bat \
-        gh tree starship gum glow
+        git curl tmux zsh neovim node ripgrep fzf bat gh starship glow
 
     if confirm "Install GUI apps (rectangle, postman)?" n; then
         install_missing "casks" cask_list cask_do rectangle postman
@@ -216,8 +215,8 @@ install_debian() {
     fi
     step "Packages (apt, full)"
     install_missing "apt packages" apt_list apt_do \
-        ca-certificates build-essential git curl wget unzip tmux zsh \
-        ripgrep fd-find bat fzf python3 python3-pip
+        ca-certificates build-essential git curl unzip tmux zsh \
+        ripgrep bat fzf python3
 
     if ! have node; then
         step "Node.js LTS"
