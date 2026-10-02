@@ -24,26 +24,53 @@ vim.opt.cursorline = true
 vim.opt.scrolloff = 10
 
 -- Clipboard
--- Locally, talk to the system clipboard directly (pbcopy/xclip).
--- Over SSH there is nothing local to talk to, so use OSC 52: the copy is
--- encoded into an escape sequence that travels back through ssh -- and through
--- tmux, which forwards it when set-clipboard is on -- to the terminal you are
--- actually sitting at. That puts a remote yank on the Mac clipboard.
+-- Inside tmux the tmux paste buffer is the shared clipboard: every pane,
+-- window and session on that tmux server sees it, and so do vim and tmux's
+-- own copy mode. `load-buffer -w` also forwards each copy via OSC 52 --
+-- through ssh if need be -- to the terminal you are sitting at, so it lands
+-- on the Mac clipboard as well (tmux: set-clipboard on).
 --
--- Paste deliberately reads the unnamed register rather than querying the
--- terminal: OSC 52 reads are a security hole and most terminals (iTerm2
--- included) refuse to answer, which would just hang. To paste *from* the Mac,
--- use the terminal's own paste (Cmd+V) -- that arrives as keystrokes.
+-- Over SSH without tmux, copy via OSC 52 directly. Locally without tmux,
+-- Neovim's own provider (pbcopy/xclip) is fine.
+--
+-- Paste never queries the terminal: OSC 52 reads are a security hole and
+-- most terminals (iTerm2 included) refuse to answer, which would just hang.
+-- Locally, paste from the system clipboard so Cmd+C elsewhere still pastes
+-- with p. Remotely, paste from the tmux buffer, or the unnamed register when
+-- there is no tmux. Pasting *from* the Mac into a remote session is the
+-- terminal's own paste (Cmd+V), which arrives as keystrokes.
 vim.schedule(function()
-  if vim.env.SSH_TTY or vim.env.SSH_CONNECTION then
-    local osc52 = require 'vim.ui.clipboard.osc52'
-    local from_unnamed = function()
+  local remote = vim.env.SSH_TTY or vim.env.SSH_CONNECTION
+  local in_tmux = vim.env.TMUX
+
+  local copy, paste
+  if in_tmux then
+    copy = { 'tmux', 'load-buffer', '-w', '-' }
+  elseif remote then
+    copy = require('vim.ui.clipboard.osc52').copy '+'
+  end
+
+  if not remote and (vim.fn.executable 'pbpaste' == 1 or vim.fn.executable 'xclip' == 1) then
+    paste = nil -- let the built-in provider read the system clipboard
+  elseif in_tmux then
+    paste = { 'tmux', 'save-buffer', '-' }
+  else
+    paste = function()
       return vim.split(vim.fn.getreg '"', '\n')
     end
+  end
+
+  if copy then
+    if not paste then
+      -- Local + tmux: copy through tmux (buffer + OSC 52) but read back
+      -- from the system clipboard, which that same OSC 52 just updated.
+      paste = vim.fn.executable 'pbpaste' == 1 and { 'pbpaste' } or { 'xclip', '-selection', 'clipboard', '-o' }
+    end
     vim.g.clipboard = {
-      name = 'OSC 52',
-      copy = { ['+'] = osc52.copy '+', ['*'] = osc52.copy '*' },
-      paste = { ['+'] = from_unnamed, ['*'] = from_unnamed },
+      name = in_tmux and 'tmux' or 'OSC 52',
+      copy = { ['+'] = copy, ['*'] = copy },
+      paste = { ['+'] = paste, ['*'] = paste },
+      cache_enabled = false, -- always re-read, so copies made elsewhere show up
     }
   end
   vim.opt.clipboard = 'unnamedplus'

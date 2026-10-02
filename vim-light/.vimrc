@@ -67,16 +67,21 @@ augroup auto_comment
   au FileType * setlocal formatoptions-=c formatoptions-=r formatoptions-=o
 augroup END
 
-" Clipboard over SSH via OSC 52.
-" Vim has no built-in support, so encode the yank into an escape sequence and
-" write it to the terminal. It travels back through ssh -- and through tmux,
-" which forwards it when set-clipboard is on -- to the terminal you are sitting
-" at, so a yank on a remote box lands on the local clipboard.
-" Pasting the other way is the terminal's own paste (Cmd+V), which arrives as
-" keystrokes; OSC 52 reads are refused by most terminals, so we do not try.
+" Shared clipboard.
+" Inside tmux, yanks go to the tmux paste buffer, which every pane, window
+" and session on that tmux server shares (Neovim reads and writes the same
+" buffer). `load-buffer -w` also forwards the copy via OSC 52 -- through ssh
+" if need be -- to the terminal you are sitting at (tmux: set-clipboard on).
+" Without tmux, write the OSC 52 sequence ourselves; Vim has no built-in
+" support. Pasting *from* the Mac is the terminal's own paste (Cmd+V), which
+" arrives as keystrokes; OSC 52 reads are refused by most terminals.
 if exists('##TextYankPost') && !has('gui_running')
-  function! s:Osc52(text) abort
-    " Terminals and tmux cap the sequence length; skip absurd yanks.
+  function! s:ShareYank(text) abort
+    if !empty($TMUX)
+      call system('tmux load-buffer -w -', a:text)
+      return
+    endif
+    " Terminals cap the sequence length; skip absurd yanks.
     if strlen(a:text) > 74994
       return
     endif
@@ -84,11 +89,22 @@ if exists('##TextYankPost') && !has('gui_running')
     silent! call writefile(["\e]52;c;" . l:b64 . "\a"], '/dev/tty', 'b')
   endfunction
 
-  augroup Osc52Yank
+  augroup ShareYank
     autocmd!
     autocmd TextYankPost *
           \ if v:event.operator ==# 'y' && v:event.regname ==# '' |
-          \   call s:Osc52(join(v:event.regcontents, "\n")) |
+          \   call s:ShareYank(join(v:event.regcontents, "\n")) |
           \ endif
   augroup END
+
+  " ,p / ,P paste the shared tmux buffer -- whatever tmux copy mode, Neovim
+  " or another vim last copied. A trailing newline makes the put linewise.
+  if !empty($TMUX)
+    function! s:PasteTmux(how) abort
+      let @" = system('tmux save-buffer - 2>/dev/null')
+      execute 'normal! ' . a:how
+    endfunction
+    nnoremap <silent> ,p :call <SID>PasteTmux('p')<CR>
+    nnoremap <silent> ,P :call <SID>PasteTmux('P')<CR>
+  endif
 endif
