@@ -135,13 +135,15 @@ The configuration requires:
 
 ### Language Server Support
 
-Configured LSP servers:
+Installed automatically by Mason on first launch:
 - `lua_ls` (Lua)
-- `clangd` (C++)
 - `pyright` (Python)
+- `ts_ls` (JavaScript/TypeScript)
+
+Configured but installed on demand (`:MasonInstall <name>`), since each is a large download:
+- `clangd` (C++)
 - `gopls` (Go)
 - `rust_analyzer` (Rust)
-- `ts_ls` (JavaScript/TypeScript)
 
 Additional tools installed via Mason:
 - `stylua` (Lua formatter)

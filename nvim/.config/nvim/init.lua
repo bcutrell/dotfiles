@@ -469,8 +469,10 @@ require('lazy').setup({
         ts_ls = {},
       }
 
-      local ensure_installed = vim.tbl_keys(servers or {})
-      vim.list_extend(ensure_installed, { 'stylua', 'prettier' })
+      -- Only the daily-use servers install eagerly. clangd, gopls and
+      -- rust_analyzer stay configured above but are large downloads, so
+      -- fetch them on demand with :MasonInstall on a box that needs them.
+      local ensure_installed = { 'pyright', 'ts_ls', 'lua_ls', 'stylua', 'prettier' }
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
       require('mason-lspconfig').setup {
@@ -601,6 +603,10 @@ require('lazy').setup({
   -- Treesitter
   {
     'nvim-treesitter/nvim-treesitter',
+    -- The default branch became the 'main' rewrite in 2025, which drops the
+    -- nvim-treesitter.configs module used below and needs Neovim 0.11+.
+    -- Fresh clones must stay on the frozen master branch.
+    branch = 'master',
     event = { 'BufReadPost', 'BufNewFile' },
     build = ':TSUpdate',
     main = 'nvim-treesitter.configs',
