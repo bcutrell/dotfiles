@@ -198,7 +198,7 @@ install_debian() {
     fi
     step "Packages (apt, full)"
     install_missing "apt packages" apt_list apt_do \
-        ca-certificates build-essential git curl unzip tmux screen zsh ripgrep bat fzf python3
+        ca-certificates build-essential git curl unzip tmux screen vim zsh ripgrep bat fzf python3
 
     if ! have node; then
         step "Node.js LTS"
@@ -277,7 +277,8 @@ step "Done ($TIER)"
 echo
 log "Restart your shell (or: exec \$SHELL)"
 if [ "$TIER" = full ]; then
-    log "Run nvim -- lazy.nvim installs plugins on first launch; then :checkhealth and :Mason"
+    log "Run nvim -- lazy.nvim installs plugins on first launch; then :checkhealth"
+    log "Updating? See README, Setup > Existing machine, for the editor plugin step"
 else
     log "vim is configured with no plugins and no network calls"
 fi

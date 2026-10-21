@@ -5,6 +5,13 @@ syntax enable
 set encoding=utf-8
 set fileencoding=utf-8
 
+" 256-color default; vim/.vimrc swaps in tokyonight on truecolor terminals.
+" Vim only knows the 24-bit escapes for xterm TERMs; spell them out for tmux/screen.
+let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+set background=dark
+silent! colorscheme habamax
+
 set number relativenumber ruler cursorline showcmd
 set wildmenu wildmode=longest:full,full
 set laststatus=2 scrolloff=8 signcolumn=yes

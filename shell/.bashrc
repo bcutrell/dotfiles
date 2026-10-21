@@ -19,18 +19,10 @@ if command -v starship >/dev/null 2>&1; then
         || starship init bash --print-full-init > "$_bcache/starship.bash"
     . "$_bcache/starship.bash"
 else
-    # Branch name read from .git/HEAD: no forks per prompt.
     __set_ps1() {
-        local d=$PWD b g=
-        while [ -n "$d" ]; do
-            if [ -f "$d/.git/HEAD" ]; then
-                read -r b < "$d/.git/HEAD"
-                g=" (${b#ref: refs/heads/})"
-                break
-            fi
-            [ -e "$d/.git" ] && break
-            d=${d%/*}
-        done
+        local g=
+        _git_head
+        [ -n "$_git_branch" ] && g=" ($_git_branch)"
         case "$TERM" in
             xterm-color|*-256color|screen*|tmux*|alacritty|wezterm|xterm-ghostty)
                 PS1='\[\033[36m\]\w\[\033[35m\]'$g'\[\033[0m\]\$ ' ;;

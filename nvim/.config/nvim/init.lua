@@ -2,6 +2,19 @@ vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 vim.g.have_nerd_font = false
 
+-- No remote plugins; skip the provider checks.
+vim.g.loaded_node_provider = 0
+vim.g.loaded_perl_provider = 0
+vim.g.loaded_python3_provider = 0
+vim.g.loaded_ruby_provider = 0
+
+-- tokyonight needs truecolor; otherwise use the 256-color habamax. Neovim's own
+-- detection finishes after startup, so decide from COLORTERM here.
+vim.o.termguicolors = vim.env.COLORTERM == 'truecolor' or vim.env.COLORTERM == '24bit'
+if not vim.o.termguicolors then
+  vim.cmd.colorscheme 'habamax'
+end
+
 vim.opt.number = true
 vim.opt.relativenumber = true
 vim.opt.mouse = 'a'
@@ -127,6 +140,14 @@ map('n', '<leader>zx', "<cmd>normal! 'x<CR>", { desc = 'Jump to mark x' })
 map('n', '<leader>z.', "<cmd>normal! '.<CR>", { desc = 'Jump to last edit' })
 map('n', '<leader>z,', "<cmd>normal! ''<CR>", { desc = 'Jump to last position' })
 
+-- Treesitter highlighting wherever a parser is installed; regex syntax otherwise.
+vim.api.nvim_create_autocmd('FileType', {
+  group = vim.api.nvim_create_augroup('treesitter-builtin', { clear = true }),
+  callback = function(ev)
+    pcall(vim.treesitter.start, ev.buf)
+  end,
+})
+
 vim.api.nvim_create_autocmd('TextYankPost', {
   desc = 'Highlight when yanking text',
   group = vim.api.nvim_create_augroup('highlight-yank', { clear = true }),
@@ -151,6 +172,7 @@ vim.opt.rtp:prepend(lazypath)
 require('lazy').setup({
   {
     'folke/tokyonight.nvim',
+    cond = vim.o.termguicolors,
     priority = 1000,
     config = function()
       require('tokyonight').setup { styles = { comments = { italic = false } } }
@@ -280,8 +302,10 @@ require('lazy').setup({
   },
   {
     'neovim/nvim-lspconfig',
+    event = { 'BufReadPre', 'BufNewFile' },
+    cmd = 'Mason',
     dependencies = {
-      -- mason v2 needs Neovim 0.11 and drops the `handlers` API, so hold the stack at v1.
+      -- mason v2 drops the `handlers` API, so hold the stack at v1.
       { 'williamboman/mason.nvim', version = '^1', opts = {} },
       { 'williamboman/mason-lspconfig.nvim', version = '^1' },
       'WhoIsSethDaniel/mason-tool-installer.nvim',
@@ -289,14 +313,6 @@ require('lazy').setup({
       'hrsh7th/cmp-nvim-lsp',
     },
     config = function()
-      -- 0.11 made supports_method a method; call whichever form exists.
-      local function supports_method(client, method)
-        local ok, res = pcall(function()
-          return client:supports_method(method)
-        end)
-        return ok and res or client.supports_method(method)
-      end
-
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('lsp-attach', { clear = true }),
         callback = function(event)
@@ -315,7 +331,7 @@ require('lazy').setup({
           bmap('gD', vim.lsp.buf.declaration, '[G]oto [D]eclaration')
 
           local client = vim.lsp.get_client_by_id(event.data.client_id)
-          if client and supports_method(client, vim.lsp.protocol.Methods.textDocument_documentHighlight) then
+          if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight) then
             local hl = vim.api.nvim_create_augroup('lsp-highlight', { clear = false })
             vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, { buffer = event.buf, group = hl, callback = vim.lsp.buf.document_highlight })
             vim.api.nvim_create_autocmd({ 'CursorMoved', 'CursorMovedI' }, { buffer = event.buf, group = hl, callback = vim.lsp.buf.clear_references })
@@ -328,7 +344,7 @@ require('lazy').setup({
             })
           end
 
-          if client and supports_method(client, vim.lsp.protocol.Methods.textDocument_inlayHint) then
+          if client and client:supports_method(vim.lsp.protocol.Methods.textDocument_inlayHint) then
             bmap('<leader>ch', function()
               vim.lsp.inlay_hint.enable(not vim.lsp.inlay_hint.is_enabled { bufnr = event.buf })
             end, '[T]oggle Inlay [H]ints')
@@ -478,22 +494,7 @@ require('lazy').setup({
   },
 
   {
-    'nvim-treesitter/nvim-treesitter',
-    branch = 'master', -- the 'main' rewrite drops nvim-treesitter.configs and needs 0.11+
-    event = { 'BufReadPost', 'BufNewFile' },
-    build = ':TSUpdate',
-    main = 'nvim-treesitter.configs',
-    opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc' },
-      auto_install = true,
-      highlight = { enable = true, additional_vim_regex_highlighting = { 'ruby' } },
-      indent = { enable = true, disable = { 'ruby' } },
-    },
-  },
-
-  {
     'nvim-treesitter/nvim-treesitter-context',
-    dependencies = { 'nvim-treesitter/nvim-treesitter' },
     opts = { max_lines = 3, min_window_height = 20, multiline_threshold = 1 },
     keys = {
       {
@@ -566,7 +567,7 @@ require('lazy').setup({
 
   {
     'folke/todo-comments.nvim',
-    event = 'VimEnter',
+    event = { 'BufReadPost', 'BufNewFile' },
     dependencies = { 'nvim-lua/plenary.nvim' },
     opts = { signs = false },
   },
@@ -621,6 +622,7 @@ require('lazy').setup({
     opts = { enhanced_diff_hl = true, use_icons = vim.g.have_nerd_font },
   },
 }, {
+  rocks = { enabled = false }, -- nothing here needs luarocks
   ui = {
     icons = vim.g.have_nerd_font and {} or {
       cmd = '⌘',
