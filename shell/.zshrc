@@ -25,11 +25,9 @@ if (( $+commands[starship] )); then
         || starship init zsh --print-full-init > $_zcache/starship.zsh
     source $_zcache/starship.zsh
 else
-    autoload -Uz vcs_info
-    zstyle ':vcs_info:git:*' formats '%b '
-    precmd() { vcs_info }
+    precmd() { _git_head }
     setopt PROMPT_SUBST
-    PROMPT='%F{cyan}%~%f %F{magenta}${vcs_info_msg_0_}%f%# '
+    PROMPT='%F{cyan}%~%f %F{magenta}${_git_branch:+$_git_branch }%f%# '
 fi
 
 if (( $+commands[fzf] )); then

@@ -5,6 +5,8 @@ Shell, git, tmux, vim and Neovim config for macOS and Debian/Ubuntu. Two POSIX
 
 ## Setup
 
+### New machine
+
 ```bash
 git clone https://github.com/bcutrell/dotfiles.git ~/dotfiles
 cd ~/dotfiles
@@ -12,6 +14,25 @@ sh setup.sh --full       # workstation: Neovim + LSP, Node, fzf, ripgrep, starsh
 sh setup.sh --minimal    # VM/server: git, curl, tmux, screen, plugin-free vim
 exec $SHELL
 ```
+
+On a full install, open `nvim` once: lazy.nvim installs plugins and Mason
+installs the language servers. Then run `:checkhealth`. The first `vim` launch
+installs its plugins too.
+
+### Existing machine
+
+```bash
+cd ~/dotfiles && git pull
+sh setup.sh --full       # or --minimal; installs anything missing, fixes links
+exec $SHELL
+```
+
+Then bring editor plugins in line with the config:
+
+- nvim: `:Lazy sync` (installs, updates and removes plugins)
+- vim, full tier: `:PlugClean` then `:PlugUpdate`
+
+The starship and fzf init caches rebuild on their own.
 
 | Flag | Does |
 |---|---|
@@ -24,9 +45,8 @@ Re-running is safe and switches tiers. Anything already at a target path is
 moved to `~/.dotfiles_backup/<timestamp>/`. Git identity and the credential
 helper are written to `~/.gitconfig.local`, which `.gitconfig` includes.
 
-After a full install, run `nvim` once so lazy.nvim installs plugins, then
-`:Mason` and `:checkhealth`. On macOS, Neovim must be 0.11+ for the current
-plugin pins (`brew upgrade neovim`).
+Setup leaves an already-installed Neovim alone; see [Neovim](#neovim) for the
+version it needs.
 
 ### Starting fresh
 
@@ -82,14 +102,15 @@ Linux is tested in Docker; macOS by hand.
 environment (PATH, EDITOR, LANG, fzf defaults) and aliases. Every optional tool
 is guarded, so a bare box starts silently. starship and fzf init scripts are
 cached under `~/.cache/{zsh,bash}` and regenerated when the binary changes.
-`h` fuzzy-picks a history entry.
+`h` fuzzy-picks a history entry. The prompt shows directory, git branch/status and an
+active Python venv; see `starship.toml` for why it stops there.
 
 ## Vim
 
-`vim/base.vim` holds the settings both tiers share. `vim-light/.vimrc` adds
-only the built-in `habamax` colorscheme. `vim/.vimrc` adds vim-plug, tokyonight,
-fzf, NERDTree, CtrlP, ALE, fugitive and lightline (`,f` files, `,r` grep,
-`,d` tree, `,t` CtrlP).
+`vim/base.vim` holds the settings both tiers share, including the built-in
+`habamax` colorscheme; `vim-light/.vimrc` adds nothing. `vim/.vimrc` adds vim-plug, tokyonight,
+fzf, NERDTree, ALE, fugitive and lightline (`,f`/`,t` files, `,b` buffers,
+`,r` grep, `,d` tree). ALE lints on save and on leaving insert mode, not while typing.
 
 ## Neovim
 
@@ -99,7 +120,9 @@ lazy.nvim, fzf-lua, harpoon, oil, diffview, csvview and vimwiki. Mason installs
 `gopls` and `rust_analyzer` are configured but installed on demand with
 `:MasonInstall`. Set `vim.g.have_nerd_font = true` if a Nerd Font is installed.
 
-Needs Neovim 0.9+, git, a C compiler, Node, Python 3 and ripgrep.
+Needs Neovim 0.11+, git, Node and ripgrep; the full tier installs them. To
+upgrade an older Neovim: `brew upgrade neovim`, or on Linux remove it and re-run
+setup.
 
 ## Tmux
 
@@ -114,6 +137,16 @@ Default `Ctrl-b` prefix, vi copy mode, windows numbered from 1, mouse off.
 | `prefix r` | reload config |
 | `prefix [` then `v`, `y` | select, copy |
 | `prefix ]` | paste the tmux buffer |
+
+## Colors
+
+tmux, vim and nvim use truecolor (tokyonight) only when `COLORTERM` is
+`truecolor` or `24bit`, which iTerm2, Ghostty, WezTerm and Alacritty set.
+Otherwise vim and nvim fall back to the 256-color `habamax` (Terminal.app, most
+ssh sessions). ssh does not forward
+`COLORTERM`; to keep truecolor on a remote box, add `SendEnv COLORTERM` to
+`~/.ssh/config` and `AcceptEnv COLORTERM` to the server's `sshd_config`.
+Restart the tmux server (`tmux kill-server`) after changing terminals.
 
 ## Clipboard
 
