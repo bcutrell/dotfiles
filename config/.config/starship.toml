@@ -6,7 +6,7 @@ command_timeout = 200
 
 # Only cheap modules. Language modules (rust, go, node, ...) run a version
 # command on every prompt; rustup's shim alone can add over a second.
-format = '$directory$git_branch$git_state$git_status$python$cmd_duration$line_break$character'
+format = '$username$hostname$directory$git_branch$git_state$git_status$python$cmd_duration$line_break$character'
 
 # Show python only for an active venv, by name: no `python --version` per prompt.
 [python]
